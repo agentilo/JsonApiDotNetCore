@@ -346,6 +346,21 @@ namespace JsonApiDotNetCore.Services
             }
         }
 
+        public virtual async Task<IEnumerable<TResource>> UpdateAsync(IEnumerable<TResource> resources, CancellationToken cancellationToken)
+        {
+            _traceWriter.LogMethodStart();
+
+            List<TResource> newResources = new List<TResource>();
+
+            foreach(var resource in resources)
+            {
+                TResource res = await UpdateAsync(resource.Id, resource, cancellationToken);
+                if (res != null)
+                    newResources.Add(res);
+            }
+            return newResources;
+        }
+
         /// <inheritdoc />
         public virtual async Task<TResource> UpdateAsync(TId id, TResource resource, CancellationToken cancellationToken)
         {

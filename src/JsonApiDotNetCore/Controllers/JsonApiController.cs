@@ -23,8 +23,8 @@ namespace JsonApiDotNetCore.Controllers
         where TResource : class, IIdentifiable<TId>
     {
         /// <inheritdoc />
-        protected JsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService)
-            : base(options, loggerFactory, resourceService)
+        protected JsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService, bool usePut = false)
+            : base(options, loggerFactory, usePut, resourceService)
         {
         }
 
@@ -34,8 +34,8 @@ namespace JsonApiDotNetCore.Controllers
             IGetRelationshipService<TResource, TId> getRelationship = null, ICreateService<TResource, TId> create = null,
             IAddToRelationshipService<TResource, TId> addToRelationship = null, IUpdateService<TResource, TId> update = null,
             ISetRelationshipService<TResource, TId> setRelationship = null, IDeleteService<TResource, TId> delete = null,
-            IRemoveFromRelationshipService<TResource, TId> removeFromRelationship = null)
-            : base(options, loggerFactory, getAll, getById, getSecondary, getRelationship, create, addToRelationship, update, setRelationship, delete,
+            IRemoveFromRelationshipService<TResource, TId> removeFromRelationship = null, bool usePut = false)
+            : base(options, loggerFactory, usePut, getAll, getById, getSecondary, getRelationship, create, addToRelationship, update, setRelationship, delete,
                 removeFromRelationship)
         {
         }
@@ -92,6 +92,12 @@ namespace JsonApiDotNetCore.Controllers
         public override async Task<IActionResult> PatchAsync(TId id, [FromBody] TResource resource, CancellationToken cancellationToken)
         {
             return await base.PatchAsync(id, resource, cancellationToken);
+        }
+
+        [HttpPut("values")]
+        public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<TResource> resource, CancellationToken cancellationToken)
+        {
+            return await base.PutAsync(resource, cancellationToken);
         }
 
         /// <inheritdoc />

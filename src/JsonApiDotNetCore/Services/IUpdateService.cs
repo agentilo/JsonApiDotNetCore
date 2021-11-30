@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Resources;
@@ -19,5 +20,6 @@ namespace JsonApiDotNetCore.Services
         /// And only the values of sent relationships are replaced.
         /// </summary>
         Task<TResource> UpdateAsync(TId id, TResource resource, CancellationToken cancellationToken);
+        Task<IEnumerable<TResource>> UpdateAsync(IEnumerable<TResource> resource, CancellationToken cancellationToken);
     }
 }

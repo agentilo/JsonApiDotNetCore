@@ -37,20 +37,22 @@ namespace JsonApiDotNetCore.Controllers
         private readonly IRemoveFromRelationshipService<TResource, TId> _removeFromRelationship;
         private readonly TraceLogWriter<BaseJsonApiController<TResource, TId>> _traceWriter;
 
+        private readonly bool _usePutInsteadOfPatch;
+
         /// <summary>
         /// Creates an instance from a read/write service.
         /// </summary>
-        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService)
-            : this(options, loggerFactory, resourceService, resourceService)
+        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService, bool usePut)
+            : this(options, loggerFactory, usePut, resourceService, resourceService)
         {
         }
 
         /// <summary>
         /// Creates an instance from separate services for reading and writing.
         /// </summary>
-        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceQueryService<TResource, TId> queryService = null,
+        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, bool usePut, IResourceQueryService<TResource, TId> queryService = null,
             IResourceCommandService<TResource, TId> commandService = null)
-            : this(options, loggerFactory, queryService, queryService, queryService, queryService, commandService, commandService, commandService,
+            : this(options, loggerFactory, usePut, queryService, queryService, queryService, queryService, commandService, commandService, commandService,
                 commandService, commandService, commandService)
         {
         }
@@ -58,7 +60,7 @@ namespace JsonApiDotNetCore.Controllers
         /// <summary>
         /// Creates an instance from separate services for the various individual read and write methods.
         /// </summary>
-        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IGetAllService<TResource, TId> getAll = null,
+        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, bool usePut, IGetAllService<TResource, TId> getAll = null,
             IGetByIdService<TResource, TId> getById = null, IGetSecondaryService<TResource, TId> getSecondary = null,
             IGetRelationshipService<TResource, TId> getRelationship = null, ICreateService<TResource, TId> create = null,
             IAddToRelationshipService<TResource, TId> addToRelationship = null, IUpdateService<TResource, TId> update = null,
@@ -80,6 +82,7 @@ namespace JsonApiDotNetCore.Controllers
             _setRelationship = setRelationship;
             _delete = delete;
             _removeFromRelationship = removeFromRelationship;
+            _usePutInsteadOfPatch = usePut;
         }
 
         /// <summary>
@@ -251,6 +254,9 @@ namespace JsonApiDotNetCore.Controllers
         /// </summary>
         public virtual async Task<IActionResult> PatchAsync(TId id, [FromBody] TResource resource, CancellationToken cancellationToken)
         {
+            if (_usePutInsteadOfPatch)
+                throw new RequestMethodNotAllowedException(HttpMethod.Patch);
+
             _traceWriter.LogMethodStart(new
             {
                 id,
@@ -293,6 +299,9 @@ namespace JsonApiDotNetCore.Controllers
         public virtual async Task<IActionResult> PatchRelationshipAsync(TId id, string relationshipName, [FromBody] object secondaryResourceIds,
             CancellationToken cancellationToken)
         {
+            if (_usePutInsteadOfPatch)
+                throw new RequestMethodNotAllowedException(HttpMethod.Patch);
+
             _traceWriter.LogMethodStart(new
             {
                 id,
@@ -310,6 +319,35 @@ namespace JsonApiDotNetCore.Controllers
             await _setRelationship.SetRelationshipAsync(id, relationshipName, secondaryResourceIds, cancellationToken);
 
             return NoContent();
+        }
+
+
+        /// <summary>
+        /// Updates the attributes and/or relationships of an existing resource. Only the values of sent attributes are replaced. And only the values of sent
+        /// relationships are replaced. Example: PUT /articles/1 HTTP/1.1
+        /// </summary>
+        public virtual async Task<IActionResult> PutAsync([FromBody] IEnumerable<TResource> resource, CancellationToken cancellationToken)
+        {
+            if (!_usePutInsteadOfPatch)
+                throw new RequestMethodNotAllowedException(HttpMethod.Put);
+
+            _traceWriter.LogMethodStart();
+
+            ArgumentGuard.NotNull(resource, nameof(resource));
+
+            if (_update == null)
+            {
+                throw new RequestMethodNotAllowedException(HttpMethod.Put);
+            }
+
+            if (_options.ValidateModelState && !ModelState.IsValid)
+            {
+                throw new InvalidModelStateException(ModelState, typeof(TResource), _options.IncludeExceptionStackTraceInErrors,
+                    _options.SerializerNamingStrategy);
+            }
+
+            IEnumerable<TResource> updated = await _update.UpdateAsync(resource, cancellationToken);
+            return updated == null ? (IActionResult)NoContent() : Ok(updated);
         }
 
         /// <summary>
@@ -376,15 +414,15 @@ namespace JsonApiDotNetCore.Controllers
         where TResource : class, IIdentifiable<int>
     {
         /// <inheritdoc />
-        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, int> resourceService)
-            : base(options, loggerFactory, resourceService, resourceService)
+        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, int> resourceService, bool usePut = false)
+            : base(options, loggerFactory, usePut, resourceService, resourceService)
         {
         }
 
         /// <inheritdoc />
         protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceQueryService<TResource, int> queryService = null,
-            IResourceCommandService<TResource, int> commandService = null)
-            : base(options, loggerFactory, queryService, commandService)
+            IResourceCommandService<TResource, int> commandService = null, bool usePut = false)
+            : base(options, loggerFactory,usePut, queryService, commandService)
         {
         }
 
@@ -394,8 +432,8 @@ namespace JsonApiDotNetCore.Controllers
             IGetRelationshipService<TResource, int> getRelationship = null, ICreateService<TResource, int> create = null,
             IAddToRelationshipService<TResource, int> addToRelationship = null, IUpdateService<TResource, int> update = null,
             ISetRelationshipService<TResource, int> setRelationship = null, IDeleteService<TResource, int> delete = null,
-            IRemoveFromRelationshipService<TResource, int> removeFromRelationship = null)
-            : base(options, loggerFactory, getAll, getById, getSecondary, getRelationship, create, addToRelationship, update, setRelationship, delete,
+            IRemoveFromRelationshipService<TResource, int> removeFromRelationship = null, bool usePut = false)
+            : base(options, loggerFactory, usePut, getAll, getById, getSecondary, getRelationship, create, addToRelationship, update, setRelationship, delete,
                 removeFromRelationship)
         {
         }

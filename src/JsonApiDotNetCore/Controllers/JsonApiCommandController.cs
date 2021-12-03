@@ -27,7 +27,7 @@ namespace JsonApiDotNetCore.Controllers
         /// Creates an instance from a write-only service.
         /// </summary>
         protected JsonApiCommandController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceCommandService<TResource, TId> commandService, bool usePut = false)
-            : base(options, loggerFactory, usePut, null, commandService)
+            : base(options, loggerFactory, null, commandService, usePut)
         {
         }
 
@@ -54,7 +54,7 @@ namespace JsonApiDotNetCore.Controllers
         }
 
         [HttpPut("values")]
-        public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<TResource> resource, CancellationToken cancellationToken)
+        public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object> resource, CancellationToken cancellationToken)
         {
             return await base.PutAsync(resource, cancellationToken);
         }

@@ -24,7 +24,7 @@ namespace JsonApiDotNetCore.Controllers
     {
         /// <inheritdoc />
         protected JsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService, bool usePut = false)
-            : base(options, loggerFactory, usePut, resourceService)
+            : base(options, loggerFactory, resourceService, usePut)
         {
         }
 
@@ -95,7 +95,7 @@ namespace JsonApiDotNetCore.Controllers
         }
 
         [HttpPut("values")]
-        public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<TResource> resource, CancellationToken cancellationToken)
+        public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object> resource, CancellationToken cancellationToken)
         {
             return await base.PutAsync(resource, cancellationToken);
         }

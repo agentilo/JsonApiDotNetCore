@@ -43,15 +43,15 @@ namespace JsonApiDotNetCore.Controllers
         /// Creates an instance from a read/write service.
         /// </summary>
         protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<TResource, TId> resourceService, bool usePut)
-            : this(options, loggerFactory, usePut, resourceService, resourceService)
+            : this(options, loggerFactory, resourceService, resourceService, usePut)
         {
         }
 
         /// <summary>
         /// Creates an instance from separate services for reading and writing.
         /// </summary>
-        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, bool usePut, IResourceQueryService<TResource, TId> queryService = null,
-            IResourceCommandService<TResource, TId> commandService = null)
+        protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceQueryService<TResource, TId> queryService = null,
+            IResourceCommandService<TResource, TId> commandService = null, bool usePut = false)
             : this(options, loggerFactory, usePut, queryService, queryService, queryService, queryService, commandService, commandService, commandService,
                 commandService, commandService, commandService)
         {
@@ -326,14 +326,22 @@ namespace JsonApiDotNetCore.Controllers
         /// Updates the attributes and/or relationships of an existing resource. Only the values of sent attributes are replaced. And only the values of sent
         /// relationships are replaced. Example: PUT /articles/1 HTTP/1.1
         /// </summary>
-        public virtual async Task<IActionResult> PutAsync([FromBody] IEnumerable<TResource> resource, CancellationToken cancellationToken)
+        public virtual async Task<IActionResult> PutAsync([FromBody] IEnumerable<object> resource, CancellationToken cancellationToken)
         {
             if (!_usePutInsteadOfPatch)
                 throw new RequestMethodNotAllowedException(HttpMethod.Put);
 
+            List<TResource> tList = new List<TResource>();
+
+            foreach (var obj in resource)
+            {
+                if (obj is TResource)
+                    tList.Add(obj as TResource);
+            }
+
             _traceWriter.LogMethodStart();
 
-            ArgumentGuard.NotNull(resource, nameof(resource));
+            ArgumentGuard.NotNull(resource, nameof(tList));
 
             if (_update == null)
             {
@@ -346,7 +354,7 @@ namespace JsonApiDotNetCore.Controllers
                     _options.SerializerNamingStrategy);
             }
 
-            IEnumerable<TResource> updated = await _update.UpdateAsync(resource, cancellationToken);
+            IEnumerable<TResource> updated = await _update.UpdateAsync(tList, cancellationToken);
             return updated == null ? (IActionResult)NoContent() : Ok(updated);
         }
 
@@ -422,7 +430,7 @@ namespace JsonApiDotNetCore.Controllers
         /// <inheritdoc />
         protected BaseJsonApiController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceQueryService<TResource, int> queryService = null,
             IResourceCommandService<TResource, int> commandService = null, bool usePut = false)
-            : base(options, loggerFactory,usePut, queryService, commandService)
+            : base(options, loggerFactory, queryService, commandService, usePut)
         {
         }
 

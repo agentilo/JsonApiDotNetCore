@@ -31,5 +31,6 @@
     <MoqVersion>4.16.1</MoqVersion>
     <XUnitVersion>2.4.*</XUnitVersion>
     <TestSdkVersion>17.0.0</TestSdkVersion>
+    <BlushingPenguinVersion>1.0.*</BlushingPenguinVersion>
   </PropertyGroup>
 </Project>

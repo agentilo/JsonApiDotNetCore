@@ -19,6 +19,11 @@ public sealed class ResourceAttribute : Attribute
     public string? PublicName { get; set; }
 
     /// <summary>
+    /// Optional. If not set, the public name is used as type name.
+    /// </summary>
+    public string? TypeName { get; set; }
+
+    /// <summary>
     /// The set of endpoints to auto-generate an ASP.NET controller for. Defaults to <see cref="JsonApiEndpoints.All" />. Set to
     /// <see cref="JsonApiEndpoints.None" /> to disable controller generation.
     /// </summary>

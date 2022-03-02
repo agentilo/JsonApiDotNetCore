@@ -14,6 +14,7 @@ public abstract class ResourceFieldAttribute : Attribute
 {
     // These are definitely assigned after building the resource graph, which is why their public equivalents are declared as non-nullable.
     private string? _publicName;
+    private string? _relationshipName;
     private PropertyInfo? _property;
 
     /// <summary>
@@ -30,6 +31,22 @@ public abstract class ResourceFieldAttribute : Attribute
             }
 
             _publicName = value;
+        }
+    }
+
+    /// <summary>
+    /// Optional. When put on a relation, this is used as name for the relationship instead of the Public Name
+    /// </summary>
+    public string RelationshipName {
+        get => _relationshipName!;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException("Url sub path cannot be null, empty or contain only whitespace.", nameof(value));
+            }
+
+            _relationshipName = value;
         }
     }
 

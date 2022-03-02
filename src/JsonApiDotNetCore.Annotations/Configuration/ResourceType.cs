@@ -16,6 +16,7 @@ public sealed class ResourceType
     /// The publicly exposed resource name.
     /// </summary>
     public string PublicName { get; }
+    public string TypeName { get; }
 
     /// <summary>
     /// The CLR type of the resource.
@@ -78,13 +79,14 @@ public sealed class ResourceType
     public ResourceType(string publicName, Type clrType, Type identityClrType, IReadOnlyCollection<AttrAttribute>? attributes = null,
         IReadOnlyCollection<RelationshipAttribute>? relationships = null, IReadOnlyCollection<EagerLoadAttribute>? eagerLoads = null,
         LinkTypes topLevelLinks = LinkTypes.NotConfigured, LinkTypes resourceLinks = LinkTypes.NotConfigured,
-        LinkTypes relationshipLinks = LinkTypes.NotConfigured)
+        LinkTypes relationshipLinks = LinkTypes.NotConfigured, string? typeName = null)
     {
         ArgumentGuard.NotNullNorEmpty(publicName, nameof(publicName));
         ArgumentGuard.NotNull(clrType, nameof(clrType));
         ArgumentGuard.NotNull(identityClrType, nameof(identityClrType));
 
         PublicName = publicName;
+        TypeName = typeName;
         ClrType = clrType;
         IdentityClrType = identityClrType;
         Attributes = attributes ?? Array.Empty<AttrAttribute>();

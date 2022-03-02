@@ -92,6 +92,12 @@ public abstract class JsonApiController<TResource, TId> : BaseJsonApiController<
         return await base.PatchAsync(id, resource, cancellationToken);
     }
 
+    [HttpPut("values")]
+    public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object?> resource, CancellationToken cancellationToken)
+    {
+        return await base.PutAsync(resource, cancellationToken);
+    }
+
     /// <inheritdoc />
     [HttpPatch("{id}/relationships/{relationshipName}")]
     public override async Task<IActionResult> PatchRelationshipAsync(TId id, string relationshipName, [FromBody] object? rightValue,

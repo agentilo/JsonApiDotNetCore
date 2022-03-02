@@ -11,4 +11,5 @@ public interface IUpdateService<TResource, in TId>
     /// And only the values of sent relationships are replaced.
     /// </summary>
     Task<TResource?> UpdateAsync(TId id, TResource resource, CancellationToken cancellationToken);
+    Task<IEnumerable<TResource?>> UpdateAsync(IEnumerable<TResource> resource, CancellationToken cancellationToken);
 }

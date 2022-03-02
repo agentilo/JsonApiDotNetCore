@@ -1,6 +1,7 @@
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace JsonApiDotNetCore.Controllers;
@@ -26,5 +27,11 @@ public abstract class JsonApiCommandController<TResource, TId> : JsonApiControll
         : base(options, resourceGraph, loggerFactory, null, null, null, null, commandService, commandService, commandService, commandService, commandService,
             commandService)
     {
+    }
+
+    [HttpPut("values")]
+    public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object> resource, CancellationToken cancellationToken)
+    {
+        return await base.PutAsync(resource, cancellationToken);
     }
 }

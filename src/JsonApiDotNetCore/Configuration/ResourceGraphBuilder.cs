@@ -123,7 +123,8 @@ public class ResourceGraphBuilder
 
         if (resourceClrType.IsOrImplementsInterface<IIdentifiable>())
         {
-            string effectivePublicName = publicName ?? FormatResourceName(resourceClrType);
+            string typeName = null;
+            string effectivePublicName = publicName ?? FormatResourceName(resourceClrType, out typeName);
             Type? effectiveIdType = idClrType ?? _typeLocator.LookupIdType(resourceClrType);
 
             if (effectiveIdType == null)
@@ -131,7 +132,7 @@ public class ResourceGraphBuilder
                 throw new InvalidConfigurationException($"Resource type '{resourceClrType}' implements 'IIdentifiable', but not 'IIdentifiable<TId>'.");
             }
 
-            ResourceType resourceType = CreateResourceType(effectivePublicName, resourceClrType, effectiveIdType);
+            ResourceType resourceType = CreateResourceType(effectivePublicName, resourceClrType, effectiveIdType, typeName);
 
             AssertNoDuplicatePublicName(resourceType, effectivePublicName);
 
@@ -149,7 +150,7 @@ public class ResourceGraphBuilder
         return this;
     }
 
-    private ResourceType CreateResourceType(string publicName, Type resourceClrType, Type idClrType)
+    private ResourceType CreateResourceType(string publicName, Type resourceClrType, Type idClrType, string typeName)
     {
         IReadOnlyCollection<AttrAttribute> attributes = GetAttributes(resourceClrType);
         IReadOnlyCollection<RelationshipAttribute> relationships = GetRelationships(resourceClrType);
@@ -160,9 +161,9 @@ public class ResourceGraphBuilder
         var linksAttribute = resourceClrType.GetCustomAttribute<ResourceLinksAttribute>(true);
 
         return linksAttribute == null
-            ? new ResourceType(publicName, resourceClrType, idClrType, attributes, relationships, eagerLoads)
+            ? new ResourceType(publicName, resourceClrType, idClrType, attributes, relationships, eagerLoads, typeName: typeName)
             : new ResourceType(publicName, resourceClrType, idClrType, attributes, relationships, eagerLoads, linksAttribute.TopLevelLinks,
-                linksAttribute.ResourceLinks, linksAttribute.RelationshipLinks);
+                linksAttribute.ResourceLinks, linksAttribute.RelationshipLinks, typeName : typeName);
     }
 
     private IReadOnlyCollection<AttrAttribute> GetAttributes(Type resourceClrType)
@@ -332,10 +333,10 @@ public class ResourceGraphBuilder
         return interfaces.Length == 1 ? interfaces.Single().GenericTypeArguments[0] : type;
     }
 
-    private string FormatResourceName(Type resourceClrType)
+    private string FormatResourceName(Type resourceClrType, out string typeName)
     {
         var formatter = new ResourceNameFormatter(_options.SerializerOptions.PropertyNamingPolicy);
-        return formatter.FormatResourceName(resourceClrType);
+        return formatter.FormatResourceName(resourceClrType, out typeName);
     }
 
     private string FormatPropertyName(PropertyInfo resourceProperty)

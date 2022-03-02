@@ -34,6 +34,8 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
     private readonly IRemoveFromRelationshipService<TResource, TId>? _removeFromRelationship;
     private readonly TraceLogWriter<BaseJsonApiController<TResource, TId>> _traceWriter;
 
+    private bool _usePutInsteadOfPatch;
+
     /// <summary>
     /// Creates an instance from a read/write service.
     /// </summary>
@@ -80,6 +82,12 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         _setRelationship = setRelationship;
         _delete = delete;
         _removeFromRelationship = removeFromRelationship;
+        _usePutInsteadOfPatch = false;
+    }
+
+    public void UsePutInsteadOfPatch()
+    {
+        _usePutInsteadOfPatch = true;
     }
 
     /// <summary>
@@ -266,6 +274,9 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
     /// </summary>
     public virtual async Task<IActionResult> PatchAsync(TId id, [FromBody] TResource resource, CancellationToken cancellationToken)
     {
+        if (_usePutInsteadOfPatch)
+            throw new RequestMethodNotAllowedException(HttpMethod.Patch);
+
         _traceWriter.LogMethodStart(new
         {
             id,
@@ -313,6 +324,9 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
     public virtual async Task<IActionResult> PatchRelationshipAsync(TId id, string relationshipName, [FromBody] object? rightValue,
         CancellationToken cancellationToken)
     {
+        if (_usePutInsteadOfPatch)
+            throw new RequestMethodNotAllowedException(HttpMethod.Patch);
+
         _traceWriter.LogMethodStart(new
         {
             id,
@@ -330,6 +344,44 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         await _setRelationship.SetRelationshipAsync(id, relationshipName, rightValue, cancellationToken);
 
         return NoContent();
+    }
+
+
+    /// <summary>
+    /// Updates the attributes and/or relationships of an existing resource. Only the values of sent attributes are replaced. And only the values of sent
+    /// relationships are replaced. Example: PUT /articles/1 HTTP/1.1
+    /// </summary>
+    public virtual async Task<IActionResult> PutAsync([FromBody] IEnumerable<object> resource, CancellationToken cancellationToken)
+    {
+        if (!_usePutInsteadOfPatch)
+            throw new RequestMethodNotAllowedException(HttpMethod.Put);
+
+
+        List<TResource> tList = new List<TResource>();
+
+        foreach (var obj in resource)
+        {
+            if (obj is TResource)
+                tList.Add(obj as TResource);
+        }
+
+        _traceWriter.LogMethodStart();
+
+        ArgumentGuard.NotNull(resource, nameof(tList));
+
+        if (_update == null)
+        {
+            throw new RequestMethodNotAllowedException(HttpMethod.Put);
+        }
+
+        if (_options.ValidateModelState && !ModelState.IsValid)
+        {
+            throw new InvalidModelStateException(ModelState, typeof(TResource), _options.IncludeExceptionStackTraceInErrors,
+                _resourceGraph);
+        }
+
+        IEnumerable<TResource> updated = await _update.UpdateAsync(tList, cancellationToken);
+        return updated == null ? (IActionResult)NoContent() : Ok(updated);
     }
 
     /// <summary>

@@ -190,9 +190,11 @@ public class ResponseModelAdapter : IResponseModelAdapter
             _resourceDefinitionAccessor.OnSerialize(resource);
         }
 
+        string type = resourceType.TypeName ?? resourceType.PublicName;
+
         var resourceObject = new ResourceObject
         {
-            Type = resourceType.PublicName,
+            Type = type,
             Id = resource.StringId
         };
 
@@ -300,7 +302,8 @@ public class ResponseModelAdapter : IResponseModelAdapter
             };
 
             treeNode.ResourceObject.Relationships ??= new Dictionary<string, RelationshipObject?>();
-            treeNode.ResourceObject.Relationships.Add(relationship.PublicName, relationshipObject);
+            string relationshipName = relationship.RelationshipName ?? relationship.PublicName;
+            treeNode.ResourceObject.Relationships.Add(relationshipName, relationshipObject);
         }
     }
 

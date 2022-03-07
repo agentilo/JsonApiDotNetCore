@@ -14,7 +14,7 @@ public sealed class ResourceGraph : IResourceGraph
 
     private readonly IReadOnlySet<ResourceType> _resourceTypeSet;
     private readonly Dictionary<Type, ResourceType> _resourceTypesByClrType = new();
-    private readonly Dictionary<string, ResourceType> _resourceTypesByPublicName = new();
+    private readonly Dictionary<string, ResourceType> _resourceTypesByPublicOrTypeName = new();
 
     public ResourceGraph(IReadOnlySet<ResourceType> resourceTypeSet)
     {
@@ -25,7 +25,11 @@ public sealed class ResourceGraph : IResourceGraph
         foreach (ResourceType resourceType in resourceTypeSet)
         {
             _resourceTypesByClrType.Add(resourceType.ClrType, resourceType);
-            _resourceTypesByPublicName.Add(resourceType.PublicName, resourceType);
+            _resourceTypesByPublicOrTypeName.Add(resourceType.PublicName, resourceType);
+            if (resourceType.TypeName != null && resourceType.TypeName != resourceType.PublicName)
+            {
+                _resourceTypesByPublicOrTypeName.Add(resourceType.TypeName, resourceType);
+            }
         }
     }
 
@@ -53,7 +57,7 @@ public sealed class ResourceGraph : IResourceGraph
     {
         ArgumentGuard.NotNull(publicName, nameof(publicName));
 
-        return _resourceTypesByPublicName.TryGetValue(publicName, out ResourceType? resourceType) ? resourceType : null;
+        return _resourceTypesByPublicOrTypeName.TryGetValue(publicName, out ResourceType? resourceType) ? resourceType : null;
     }
 
     /// <inheritdoc />

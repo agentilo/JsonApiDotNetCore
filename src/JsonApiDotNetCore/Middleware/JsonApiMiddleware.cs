@@ -225,6 +225,7 @@ public sealed class JsonApiMiddleware
             request.WriteOperation =
                 httpRequest.Method == HttpMethod.Post.Method ? WriteOperationKind.AddToRelationship :
                 httpRequest.Method == HttpMethod.Patch.Method ? WriteOperationKind.SetRelationship :
+                httpRequest.Method == HttpMethod.Put.Method ? WriteOperationKind.SetRelationship :
                 httpRequest.Method == HttpMethod.Delete.Method ? WriteOperationKind.RemoveFromRelationship : null;
 
             // @formatter:keep_existing_linebreaks restore
@@ -248,6 +249,7 @@ public sealed class JsonApiMiddleware
             request.WriteOperation =
                 httpRequest.Method == HttpMethod.Post.Method ? WriteOperationKind.CreateResource :
                 httpRequest.Method == HttpMethod.Patch.Method ? WriteOperationKind.UpdateResource :
+                httpRequest.Method == HttpMethod.Put.Method ? WriteOperationKind.UpdateResource :
                 httpRequest.Method == HttpMethod.Delete.Method ? WriteOperationKind.DeleteResource : null;
 
             // @formatter:keep_existing_linebreaks restore

@@ -9,7 +9,7 @@ namespace JsonApiDotNetCore.Configuration;
 [PublicAPI]
 public sealed class ResourceType
 {
-    private readonly Dictionary<string, ResourceFieldAttribute> _fieldsByPublicName = new();
+    private readonly Dictionary<string, ResourceFieldAttribute> _fieldsByPublicOrRelationshipName = new();
     private readonly Dictionary<string, ResourceFieldAttribute> _fieldsByPropertyName = new();
 
     /// <summary>
@@ -99,7 +99,11 @@ public sealed class ResourceType
 
         foreach (ResourceFieldAttribute field in Fields)
         {
-            _fieldsByPublicName.Add(field.PublicName, field);
+            _fieldsByPublicOrRelationshipName.Add(field.PublicName, field);
+            if (field.RelationshipName != null && field.RelationshipName != field.PublicName)
+            {
+                _fieldsByPublicOrRelationshipName.Add(field.RelationshipName, field);
+            }
             _fieldsByPropertyName.Add(field.Property.Name, field);
         }
     }
@@ -114,7 +118,7 @@ public sealed class ResourceType
     {
         ArgumentGuard.NotNull(publicName, nameof(publicName));
 
-        return _fieldsByPublicName.TryGetValue(publicName, out ResourceFieldAttribute? field) && field is AttrAttribute attribute ? attribute : null;
+        return _fieldsByPublicOrRelationshipName.TryGetValue(publicName, out ResourceFieldAttribute? field) && field is AttrAttribute attribute ? attribute : null;
     }
 
     public AttrAttribute GetAttributeByPropertyName(string propertyName)
@@ -141,7 +145,7 @@ public sealed class ResourceType
     {
         ArgumentGuard.NotNull(publicName, nameof(publicName));
 
-        return _fieldsByPublicName.TryGetValue(publicName, out ResourceFieldAttribute? field) && field is RelationshipAttribute relationship
+        return _fieldsByPublicOrRelationshipName.TryGetValue(publicName, out ResourceFieldAttribute? field) && field is RelationshipAttribute relationship
             ? relationship
             : null;
     }

@@ -110,10 +110,13 @@ namespace JsonApiDotNetCore.Configuration
 
             if (resourceType.IsOrImplementsInterface(typeof(IIdentifiable)))
             {
-                string effectivePublicName = publicName ?? FormatResourceName(resourceType);
+
+                string typeName = null;
+                string effectivePublicName = publicName ?? FormatResourceName(resourceType, out typeName);
+
                 Type effectiveIdType = idType ?? _typeLocator.TryGetIdType(resourceType);
 
-                ResourceContext resourceContext = CreateResourceContext(effectivePublicName, resourceType, effectiveIdType);
+                ResourceContext resourceContext = CreateResourceContext(effectivePublicName, resourceType, effectiveIdType, typeName);
                 _resources.Add(resourceContext);
             }
             else
@@ -124,11 +127,12 @@ namespace JsonApiDotNetCore.Configuration
             return this;
         }
 
-        private ResourceContext CreateResourceContext(string publicName, Type resourceType, Type idType)
+        private ResourceContext CreateResourceContext(string publicName, Type resourceType, Type idType, string typeName)
         {
             return new ResourceContext
             {
                 PublicName = publicName,
+                TypeName = typeName,
                 ResourceType = resourceType,
                 IdentityType = idType,
                 Attributes = GetAttributes(resourceType),
@@ -349,10 +353,10 @@ namespace JsonApiDotNetCore.Configuration
             return interfaces.Length == 1 ? interfaces.Single().GenericTypeArguments[0] : type;
         }
 
-        private string FormatResourceName(Type resourceType)
+        private string FormatResourceName(Type resourceType, out string typeName)
         {
             var formatter = new ResourceNameFormatter(_options.SerializerNamingStrategy);
-            return formatter.FormatResourceName(resourceType);
+            return formatter.FormatResourceName(resourceType,out typeName);
         }
 
         private string FormatPropertyName(PropertyInfo resourceProperty)

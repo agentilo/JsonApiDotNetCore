@@ -36,10 +36,11 @@ namespace JsonApiDotNetCore.Serialization.Building
 
             ResourceContext resourceContext = ResourceContextProvider.GetResourceContext(resource.GetType());
 
+            string type = resourceContext.TypeName ?? resourceContext.PublicName;
             // populating the top-level "type" and "id" members.
             var resourceObject = new ResourceObject
             {
-                Type = resourceContext.PublicName,
+                Type = type,
                 Id = resource.StringId
             };
 
@@ -153,7 +154,9 @@ namespace JsonApiDotNetCore.Serialization.Building
 
                 if (relData != null)
                 {
-                    (ro.Relationships ??= new Dictionary<string, RelationshipEntry>()).Add(rel.PublicName, relData);
+
+                    string relationshipName = rel.RelationshipName ?? rel.PublicName;
+                    (ro.Relationships ??= new Dictionary<string, RelationshipEntry>()).Add(relationshipName, relData);
                 }
             }
         }

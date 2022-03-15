@@ -19,6 +19,12 @@ namespace JsonApiDotNetCore.Configuration
         /// </summary>
         public string PublicName { get; set; }
 
+
+        /// <summary>
+        /// The publicly exposed type name.
+        /// </summary>
+        public string TypeName { get; set; }
+
         /// <summary>
         /// The CLR type of the resource.
         /// </summary>

@@ -16,6 +16,8 @@ namespace JsonApiDotNetCore.Resources.Annotations
         /// </summary>
         public string PublicName { get; }
 
+        public string TypeName { get; set; }
+
         public ResourceAttribute(string publicName)
         {
             ArgumentGuard.NotNullNorEmpty(publicName, nameof(publicName));

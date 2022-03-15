@@ -14,6 +14,7 @@ namespace JsonApiDotNetCore.Resources.Annotations
     public abstract class ResourceFieldAttribute : Attribute
     {
         private string _publicName;
+        private string _relationshipName;
 
         /// <summary>
         /// The publicly exposed name of this JSON:API field. When not explicitly assigned, the configured naming convention is applied on the property name.
@@ -31,6 +32,25 @@ namespace JsonApiDotNetCore.Resources.Annotations
                 _publicName = value;
             }
         }
+
+        /// <summary>
+        /// The publicly exposed name of this JSON:API field. When not explicitly assigned, the configured naming convention is applied on the property name.
+        /// </summary>
+        public string RelationshipName
+        {
+            get => _relationshipName;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentException("Exposed name cannot be null, empty or contain only whitespace.", nameof(value));
+                }
+
+                _relationshipName = value;
+            }
+        }
+
+
 
         /// <summary>
         /// The resource property that this attribute is declared on.

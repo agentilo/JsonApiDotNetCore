@@ -34,7 +34,7 @@ namespace JsonApiDotNetCore.Configuration
         {
             ArgumentGuard.NotNullNorEmpty(resourceName, nameof(resourceName));
 
-            return _resources.SingleOrDefault(resourceContext => resourceContext.PublicName == resourceName);
+            return _resources.SingleOrDefault(resourceContext => resourceContext.PublicName == resourceName || resourceContext.TypeName == resourceName);
         }
 
         /// <inheritdoc />

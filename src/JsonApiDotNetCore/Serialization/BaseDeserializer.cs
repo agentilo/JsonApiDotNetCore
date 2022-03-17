@@ -148,6 +148,11 @@ namespace JsonApiDotNetCore.Serialization
             foreach (RelationshipAttribute attr in relationshipAttributes)
             {
                 bool relationshipIsProvided = relationshipValues.TryGetValue(attr.PublicName, out RelationshipEntry relationshipData);
+                if (!relationshipIsProvided)
+                {
+                    relationshipIsProvided = relationshipValues.TryGetValue(attr.RelationshipName, out relationshipData);
+                }
+
 
                 if (!relationshipIsProvided || !relationshipData.IsPopulated)
                 {

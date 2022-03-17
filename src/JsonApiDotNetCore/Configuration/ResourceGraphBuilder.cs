@@ -123,8 +123,8 @@ public class ResourceGraphBuilder
 
         if (resourceClrType.IsOrImplementsInterface<IIdentifiable>())
         {
-            string typeName = null;
-            string effectivePublicName = publicName ?? FormatResourceName(resourceClrType, out typeName);
+            (string resourceName, string? typeName) names = FormatResourceName(resourceClrType);
+            string effectivePublicName = publicName ?? names.resourceName;
             Type? effectiveIdType = idClrType ?? _typeLocator.LookupIdType(resourceClrType);
 
             if (effectiveIdType == null)
@@ -132,7 +132,7 @@ public class ResourceGraphBuilder
                 throw new InvalidConfigurationException($"Resource type '{resourceClrType}' implements 'IIdentifiable', but not 'IIdentifiable<TId>'.");
             }
 
-            ResourceType resourceType = CreateResourceType(effectivePublicName, resourceClrType, effectiveIdType, typeName);
+            ResourceType resourceType = CreateResourceType(effectivePublicName, resourceClrType, effectiveIdType, names.typeName);
 
             AssertNoDuplicatePublicName(resourceType, effectivePublicName);
 
@@ -150,7 +150,7 @@ public class ResourceGraphBuilder
         return this;
     }
 
-    private ResourceType CreateResourceType(string publicName, Type resourceClrType, Type idClrType, string typeName)
+    private ResourceType CreateResourceType(string publicName, Type resourceClrType, Type idClrType, string? typeName)
     {
         IReadOnlyCollection<AttrAttribute> attributes = GetAttributes(resourceClrType);
         IReadOnlyCollection<RelationshipAttribute> relationships = GetRelationships(resourceClrType);
@@ -333,10 +333,10 @@ public class ResourceGraphBuilder
         return interfaces.Length == 1 ? interfaces.Single().GenericTypeArguments[0] : type;
     }
 
-    private string FormatResourceName(Type resourceClrType, out string typeName)
+    private (string resourceName, string? typeName) FormatResourceName(Type resourceClrType)
     {
         var formatter = new ResourceNameFormatter(_options.SerializerOptions.PropertyNamingPolicy);
-        return formatter.FormatResourceName(resourceClrType, out typeName);
+        return formatter.FormatResourceName(resourceClrType);
     }
 
     private string FormatPropertyName(PropertyInfo resourceProperty)

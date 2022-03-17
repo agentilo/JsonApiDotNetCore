@@ -17,19 +17,19 @@ internal sealed class ResourceNameFormatter
     /// <summary>
     /// Gets the publicly exposed resource name by applying the configured naming convention on the pluralized CLR type name.
     /// </summary>
-    public string FormatResourceName(Type resourceClrType, out string typeName)
+    public (string resourceName, string? typeName) FormatResourceName(Type resourceClrType)
     {
         ArgumentGuard.NotNull(resourceClrType, nameof(resourceClrType));
 
         var resourceAttribute = resourceClrType.GetCustomAttribute<ResourceAttribute>(true);
-        typeName = null;
         if (resourceAttribute != null && !string.IsNullOrWhiteSpace(resourceAttribute.PublicName))
         {
-            typeName = resourceAttribute.TypeName;
-            return resourceAttribute.PublicName;
+            string? typeName = resourceAttribute.TypeName;
+            return (resourceAttribute.PublicName, typeName);
         }
 
         string publicName = resourceClrType.Name.Pluralize();
-        return _namingPolicy != null ? _namingPolicy.ConvertName(publicName) : publicName;
+        publicName = _namingPolicy != null ? _namingPolicy.ConvertName(publicName) : publicName;
+        return (publicName, null);
     }
 }

@@ -112,7 +112,13 @@ namespace JsonApiDotNetCore.Configuration
             {
 
                 string typeName = null;
-                string effectivePublicName = publicName ?? FormatResourceName(resourceType, out typeName);
+                string effectivePublicName = publicName;
+
+                if (publicName == null) {
+                    var tuple = FormatResourceName(resourceType);
+                    typeName = tuple.typeName;
+                    effectivePublicName = tuple.resourceName;
+                }
 
                 Type effectiveIdType = idType ?? _typeLocator.TryGetIdType(resourceType);
 
@@ -353,10 +359,10 @@ namespace JsonApiDotNetCore.Configuration
             return interfaces.Length == 1 ? interfaces.Single().GenericTypeArguments[0] : type;
         }
 
-        private string FormatResourceName(Type resourceType, out string typeName)
+        private (string resourceName,string typeName) FormatResourceName(Type resourceType)
         {
             var formatter = new ResourceNameFormatter(_options.SerializerNamingStrategy);
-            return formatter.FormatResourceName(resourceType,out typeName);
+            return formatter.FormatResourceName(resourceType);
         }
 
         private string FormatPropertyName(PropertyInfo resourceProperty)

@@ -18,18 +18,19 @@ namespace JsonApiDotNetCore.Configuration
         /// <summary>
         /// Gets the publicly visible resource name for the internal type name using the configured naming convention.
         /// </summary>
-        public string FormatResourceName(Type resourceType, out string typeName)
+        /// <returns>Tuple. First string is public name, secont typename</returns>
+        public (string resourceName, string typeName) FormatResourceName(Type resourceType)
         {
-            Attribute? attr = resourceType.GetCustomAttribute(typeof(ResourceAttribute));
-            typeName = null;
+            Attribute attr = resourceType.GetCustomAttribute(typeof(ResourceAttribute));
+            string typeName = null;
             if (attr != null && attr is ResourceAttribute attribute)
             {
                 typeName = attribute.TypeName;
-                return attribute.PublicName;
+                return (attribute.PublicName, typeName);
             }
             else
             {
-               return _namingStrategy.GetPropertyName(resourceType.Name.Pluralize(), false);
+               return (_namingStrategy.GetPropertyName(resourceType.Name.Pluralize(), false), null);
             }
         }
     }

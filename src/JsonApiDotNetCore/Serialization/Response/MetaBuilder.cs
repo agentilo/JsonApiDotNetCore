@@ -36,14 +36,15 @@ public sealed class MetaBuilder : IMetaBuilder
     /// <inheritdoc />
     public IDictionary<string, object?>? Build()
     {
-        if (_paginationContext.TotalResourceCount != null)
+        //Not needed, as total number is shown in collection meta data
+        /*if (_paginationContext.TotalResourceCount != null)
         {
             const string keyName = "Total";
             string key = _options.SerializerOptions.DictionaryKeyPolicy == null ? keyName : _options.SerializerOptions.DictionaryKeyPolicy.ConvertName(keyName);
-            _meta.Add(key, _paginationContext.TotalResourceCount);
-        }
+            _meta.Add(key, _paginationContext.TotalResourceCount);      
+        }*/
 
-        IReadOnlyDictionary<string, object?>? extraMeta = _responseMeta.GetMeta();
+        IReadOnlyDictionary<string, object?>? extraMeta = _responseMeta.GetMeta(_paginationContext);
 
         if (extraMeta != null)
         {

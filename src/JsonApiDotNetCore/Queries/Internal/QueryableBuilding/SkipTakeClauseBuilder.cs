@@ -37,7 +37,7 @@ public class SkipTakeClauseBuilder : QueryClauseBuilder<object?>
 
         if (expression.PageSize != null)
         {
-            int skipValue = (expression.PageNumber.OneBasedValue - 1) * expression.PageSize.Value;
+            int skipValue = (expression.PageNumber.ZeroBasedValue) * expression.PageSize.Value;
 
             if (skipValue > 0)
             {

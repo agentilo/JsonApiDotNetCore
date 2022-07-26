@@ -513,7 +513,7 @@ public class QueryLayerComposer : IQueryLayerComposer
 
         pagination = _resourceDefinitionAccessor.OnApplyPagination(resourceType, pagination);
 
-        pagination ??= new PaginationExpression(PageNumber.ValueOne, _options.DefaultPageSize);
+        pagination ??= new PaginationExpression(PageNumber.ValueZero, _options.DefaultPageSize);
 
         return pagination;
     }

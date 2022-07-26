@@ -6,7 +6,7 @@ namespace JsonApiDotNetCore.Queries;
 internal sealed class PaginationContext : IPaginationContext
 {
     /// <inheritdoc />
-    public PageNumber PageNumber { get; set; } = PageNumber.ValueOne;
+    public PageNumber PageNumber { get; set; } = PageNumber.ValueZero;
 
     /// <inheritdoc />
     public PageSize? PageSize { get; set; }

@@ -124,17 +124,17 @@ public class LinkBuilder : ILinkBuilder
             links.Last = GetLinkForPagination(_paginationContext.TotalPageCount.Value, pageSizeValue);
         }
 
-        if (_paginationContext.PageNumber.OneBasedValue > 1)
+        if (_paginationContext.PageNumber.ZeroBasedValue > 0)
         {
-            links.Prev = GetLinkForPagination(_paginationContext.PageNumber.OneBasedValue - 1, pageSizeValue);
+            links.Prev = GetLinkForPagination(_paginationContext.PageNumber.ZeroBasedValue, pageSizeValue);
         }
 
-        bool hasNextPage = _paginationContext.PageNumber.OneBasedValue < _paginationContext.TotalPageCount;
+        bool hasNextPage = _paginationContext.PageNumber.ZeroBasedValue < _paginationContext.TotalPageCount - 1;
         bool possiblyHasNextPage = _paginationContext.TotalPageCount == null && _paginationContext.IsPageFull;
 
         if (hasNextPage || possiblyHasNextPage)
         {
-            links.Next = GetLinkForPagination(_paginationContext.PageNumber.OneBasedValue + 1, pageSizeValue);
+            links.Next = GetLinkForPagination(_paginationContext.PageNumber.ZeroBasedValue + 1, pageSizeValue);
         }
     }
 

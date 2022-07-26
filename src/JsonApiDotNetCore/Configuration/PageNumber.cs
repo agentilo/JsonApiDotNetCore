@@ -5,18 +5,18 @@ namespace JsonApiDotNetCore.Configuration;
 [PublicAPI]
 public sealed class PageNumber : IEquatable<PageNumber>
 {
-    public static readonly PageNumber ValueOne = new(1);
+    public static readonly PageNumber ValueZero = new(0);
 
-    public int OneBasedValue { get; }
+    public int ZeroBasedValue { get; }
 
-    public PageNumber(int oneBasedValue)
+    public PageNumber(int zeroBasedValue)
     {
-        if (oneBasedValue < 1)
+        if (zeroBasedValue < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(oneBasedValue));
+            throw new ArgumentOutOfRangeException(nameof(zeroBasedValue));
         }
 
-        OneBasedValue = oneBasedValue;
+        ZeroBasedValue = zeroBasedValue;
     }
 
     public bool Equals(PageNumber? other)
@@ -31,7 +31,7 @@ public sealed class PageNumber : IEquatable<PageNumber>
             return true;
         }
 
-        return OneBasedValue == other.OneBasedValue;
+        return ZeroBasedValue == other.ZeroBasedValue;
     }
 
     public override bool Equals(object? other)
@@ -41,11 +41,11 @@ public sealed class PageNumber : IEquatable<PageNumber>
 
     public override int GetHashCode()
     {
-        return OneBasedValue.GetHashCode();
+        return ZeroBasedValue.GetHashCode();
     }
 
     public override string ToString()
     {
-        return OneBasedValue.ToString();
+        return ZeroBasedValue.ToString();
     }
 }

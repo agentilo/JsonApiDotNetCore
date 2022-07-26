@@ -11,6 +11,8 @@ public interface IResponseMeta
 {
     /// <summary>
     /// Gets the global top-level JSON:API meta information to add to the response.
+    /// Added information about the collection size
     /// </summary>
-    IReadOnlyDictionary<string, object?>? GetMeta();
+    IReadOnlyDictionary<string, object?>? GetMeta(Queries.IPaginationContext paginationContext);
+
 }

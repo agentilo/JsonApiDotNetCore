@@ -82,7 +82,7 @@ public interface IJsonApiOptions
     LinkTypes RelationshipLinks { get; }
 
     /// <summary>
-    /// Whether or not the total resource count should be included in top-level meta objects. This requires an additional database query. False by default.
+    /// Whether or not the total resource count should be calculated for top-level meta objects. This requires an additional database query. False by default.
     /// </summary>
     bool IncludeTotalResourceCount { get; }
 

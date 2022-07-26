@@ -106,14 +106,14 @@ public class PaginationQueryStringParameterReader : QueryStringParameterReader, 
     [AssertionMethod]
     protected virtual void ValidatePageNumber(PaginationQueryStringValueExpression constraint)
     {
-        if (_options.MaximumPageNumber != null && constraint.Elements.Any(element => element.Value > _options.MaximumPageNumber.OneBasedValue))
+        if (_options.MaximumPageNumber != null && constraint.Elements.Any(element => element.Value > _options.MaximumPageNumber.ZeroBasedValue - 1))
         {
             throw new QueryParseException($"Page number cannot be higher than {_options.MaximumPageNumber}.");
         }
 
-        if (constraint.Elements.Any(element => element.Value < 1))
+        if (constraint.Elements.Any(element => element.Value < 0))
         {
-            throw new QueryParseException("Page number cannot be negative or zero.");
+            throw new QueryParseException("Page number cannot be negative.");
         }
     }
 
@@ -179,7 +179,7 @@ public class PaginationQueryStringParameterReader : QueryStringParameterReader, 
                 entry.PageSize = options.DefaultPageSize;
             }
 
-            entry.PageNumber ??= PageNumber.ValueOne;
+            entry.PageNumber ??= PageNumber.ValueZero;
         }
 
         public IReadOnlyCollection<ExpressionInScope> GetExpressionsInScope()

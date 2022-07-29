@@ -32,10 +32,14 @@ public sealed class DocumentInResourceOrRelationshipRequestAdapter : IDocumentIn
         switch (state.Request.WriteOperation)
         {
             case WriteOperationKind.CreateResource:
-            case WriteOperationKind.UpdateResource:
             {
                 ResourceIdentityRequirements requirements = CreateIdentityRequirements(state);
                 return _resourceDataAdapter.Convert(document.Data, requirements, state);
+            }
+            case WriteOperationKind.UpdateResource:
+            {
+                ResourceIdentityRequirements requirements = CreateIdentityRequirements(state);
+                return _resourceDataAdapter.ConvertToMany(document.Data, requirements, state);
             }
             case WriteOperationKind.SetRelationship:
             case WriteOperationKind.AddToRelationship:

@@ -13,10 +13,10 @@ public sealed class InvalidQueryStringParameterException : JsonApiException
     public string ParameterName { get; }
 
     public InvalidQueryStringParameterException(string parameterName, string genericMessage, string specificMessage, Exception? innerException = null)
-        : base(new ErrorObject(HttpStatusCode.BadRequest)
+        : base(new ErrorObject(HttpStatusCode.UnprocessableEntity)
         {
-            Title = genericMessage,
-            Detail = specificMessage,
+            Title = "Unprocessable Entity",
+            Detail = "Syntax error. Unable to process the contained instructions.",
             Source = new ErrorSource
             {
                 Parameter = parameterName

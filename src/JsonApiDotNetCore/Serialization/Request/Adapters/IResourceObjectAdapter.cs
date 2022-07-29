@@ -15,4 +15,5 @@ public interface IResourceObjectAdapter
     /// </summary>
     (IIdentifiable resource, ResourceType resourceType) Convert(ResourceObject resourceObject, ResourceIdentityRequirements requirements,
         RequestAdapterState state);
+    IEnumerable<IIdentifiable> ConvertResourceObjects(IList<ResourceObject>? data, ResourceIdentityRequirements requirements, RequestAdapterState state);
 }

@@ -28,7 +28,7 @@ public class ResourceDataAdapter : BaseAdapter, IResourceDataAdapter
         AssertHasData(data, state);
 
         using IDisposable _ = state.Position.PushElement("data");
-        AssertDataHasSingleValue(data, false, state);
+        AssertDataHasSingleValue(data, false, state); 
 
         (IIdentifiable resource, ResourceType _) = ConvertResourceObject(data, requirements, state);
 
@@ -43,5 +43,30 @@ public class ResourceDataAdapter : BaseAdapter, IResourceDataAdapter
         ResourceIdentityRequirements requirements, RequestAdapterState state)
     {
         return _resourceObjectAdapter.Convert(data.SingleValue!, requirements, state);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<IIdentifiable> ConvertToMany(SingleOrManyData<ResourceObject> data, ResourceIdentityRequirements requirements, RequestAdapterState state)
+    {
+        ArgumentGuard.NotNull(requirements, nameof(requirements));
+        ArgumentGuard.NotNull(state, nameof(state));
+
+        AssertHasData(data, state);
+
+        using IDisposable _ = state.Position.PushElement("data");
+        AssertDataHasManyValue(data, state);
+
+        IEnumerable<IIdentifiable> resource = _resourceObjectAdapter.ConvertResourceObjects(data.ManyValue, requirements, state);
+
+        // Ensure that IResourceDefinition extensibility point sees the current operation, in case it injects IJsonApiRequest.
+        state.RefreshInjectables();
+
+        foreach (var r in resource)
+        {
+            _resourceDefinitionAccessor.OnDeserialize(r);
+        }
+        
+        return resource;
+
     }
 }

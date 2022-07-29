@@ -12,4 +12,5 @@ public interface IResourceDataAdapter
     /// Validates and converts the specified <paramref name="data" />.
     /// </summary>
     IIdentifiable Convert(SingleOrManyData<ResourceObject> data, ResourceIdentityRequirements requirements, RequestAdapterState state);
+    IEnumerable<IIdentifiable> ConvertToMany(SingleOrManyData<ResourceObject> data, ResourceIdentityRequirements requirements, RequestAdapterState state);
 }

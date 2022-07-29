@@ -40,6 +40,27 @@ public sealed class ResourceObjectAdapter : ResourceIdentityAdapter, IResourceOb
         return (resource, resourceType);
     }
 
+    /// <inheritdoc />
+    public IEnumerable<IIdentifiable> ConvertResourceObjects(IList<ResourceObject>? data, ResourceIdentityRequirements requirements,
+        RequestAdapterState state)
+    {
+        ArgumentGuard.NotNull(data, nameof(data));
+        ArgumentGuard.NotNull(requirements, nameof(requirements));
+        ArgumentGuard.NotNull(state, nameof(state));
+
+        List<IIdentifiable> resourceObjects = new List<IIdentifiable>();
+
+        foreach (var resourceObject in data)
+        {
+            (IIdentifiable resource, ResourceType resourceType) = ConvertResourceIdentity(resourceObject, requirements, state);
+            ConvertAttributes(resourceObject.Attributes, resource, resourceType, state);
+            ConvertRelationships(resourceObject.Relationships, resource, resourceType, state);
+            resourceObjects.Add(resource);
+        }     
+
+        return resourceObjects;
+    }
+
     private void ConvertAttributes(IDictionary<string, object?>? resourceObjectAttributes, IIdentifiable resource, ResourceType resourceType,
         RequestAdapterState state)
     {

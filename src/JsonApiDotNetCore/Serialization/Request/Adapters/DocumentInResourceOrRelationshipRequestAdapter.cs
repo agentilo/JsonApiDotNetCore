@@ -38,8 +38,15 @@ public sealed class DocumentInResourceOrRelationshipRequestAdapter : IDocumentIn
             }
             case WriteOperationKind.UpdateResource:
             {
-                ResourceIdentityRequirements requirements = CreateIdentityRequirements(state);
-                return _resourceDataAdapter.ConvertToMany(document.Data, requirements, state);
+                ResourceIdentityRequirements requirements = CreateIdentityRequirements(state); 
+                if (document.Data.SingleValue != null) //Can be one ore many values depending on if it is PUT or PATCH
+                {
+                    return _resourceDataAdapter.Convert(document.Data, requirements, state);
+                }
+                else // if (document.Data.ManyValue != null)
+                {
+                    return _resourceDataAdapter.ConvertToMany(document.Data, requirements, state);
+                }
             }
             case WriteOperationKind.SetRelationship:
             case WriteOperationKind.AddToRelationship:

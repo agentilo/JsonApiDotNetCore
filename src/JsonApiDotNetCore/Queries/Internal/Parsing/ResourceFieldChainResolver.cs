@@ -242,7 +242,7 @@ internal sealed class ResourceFieldChainResolver
 
     public ResourceFieldAttribute GetField(string publicName, ResourceType resourceType, string path)
     {
-        ResourceFieldAttribute? field = resourceType.Fields.FirstOrDefault(nextField => nextField.PublicName == publicName);
+        ResourceFieldAttribute? field = resourceType.Fields.FirstOrDefault(nextField => nextField.PublicName == publicName || nextField.RelationshipName == publicName);
 
         if (field == null)
         {

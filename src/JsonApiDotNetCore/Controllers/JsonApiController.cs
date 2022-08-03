@@ -93,6 +93,7 @@ public abstract class JsonApiController<TResource, TId> : BaseJsonApiController<
     }
 
     [HttpPut("values")]
+    [HttpPut]
     public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object?> resource, CancellationToken cancellationToken)
     {
         return await base.PutAsync(resource, cancellationToken);

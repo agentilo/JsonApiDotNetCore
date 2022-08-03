@@ -23,10 +23,10 @@ public sealed class ErrorObject
 
     [JsonPropertyName("status")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-    public string Status
+    public int Status
     {
-        get => StatusCode.ToString("d");
-        set => StatusCode = (HttpStatusCode)int.Parse(value);
+        get => (int)StatusCode;
+        set => StatusCode = (HttpStatusCode)(value);
     }
 
     [JsonPropertyName("code")]

@@ -297,7 +297,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
 
         TResource? updated = await _update.UpdateAsync(id, resource, cancellationToken);
 
-        return updated == null ? NoContent() : Ok(updated);
+        return updated == null ? Ok() : Ok(updated); //NoContent() : Ok(updated);
     }
 
     /// <summary>

@@ -89,6 +89,9 @@ public sealed class JsonApiWriter : IJsonApiWriter
                 throw new UnsuccessfulActionResultException((HttpStatusCode)httpContext.Response.StatusCode);
             }
 
+            if (model == null)
+                return null;
+
             string responseBody = RenderModel(model);
 
             if (SetETagResponseHeader(httpContext.Request, httpContext.Response, responseBody))

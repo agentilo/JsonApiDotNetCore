@@ -26,7 +26,7 @@ public sealed class MetaBuilder : IMetaBuilder
     }
 
     /// <inheritdoc />
-    public void Add(IReadOnlyDictionary<string, object?> values)
+    public void Add(IDictionary<string, object?> values)
     {
         ArgumentGuard.NotNull(values, nameof(values));
 
@@ -44,7 +44,7 @@ public sealed class MetaBuilder : IMetaBuilder
             _meta.Add(key, _paginationContext.TotalResourceCount);      
         }*/
 
-        IReadOnlyDictionary<string, object?>? extraMeta = _responseMeta.GetMeta(_paginationContext);
+        IDictionary<string, object?>? extraMeta = _responseMeta.GetMeta(_paginationContext);
 
         if (extraMeta != null)
         {

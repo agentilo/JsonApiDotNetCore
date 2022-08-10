@@ -1,8 +1,6 @@
 # I don't want to read this whole thing I just have a question!!!
 
-> Note: Please don't file an issue to ask a question.
-
-You'll get faster results by using our official [Gitter channel](https://gitter.im/json-api-dotnet-core/Lobby) or [StackOverflow](https://stackoverflow.com/search?q=jsonapidotnetcore) where the community chimes in with helpful advice if you have questions.
+> You can file an issue to ask a question, but you'll get faster results by using our official [Gitter channel](https://gitter.im/json-api-dotnet-core/Lobby) or [StackOverflow](https://stackoverflow.com/search?q=jsonapidotnetcore) where the community chimes in with helpful advice if you have questions.
 
 # How can I contribute?
 
@@ -88,6 +86,14 @@ public sealed class AppDbContext : DbContext
 }
 ```
 
+## Creating a release (for maintainers)
+
+- Verify documentation is up-to-date
+- Bump the package version in Directory.Build.props
+- Create a GitHub release
+- Update https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb to consume the new version and release
+- Create a new branch in https://github.com/json-api-dotnet/MigrationGuide and update README.md in master
+
 ## Backporting and hotfixes (for maintainers)
 
 - Checkout the version you want to apply the feature on top of and create a new branch to release the new version:
@@ -95,8 +101,8 @@ public sealed class AppDbContext : DbContext
   git checkout tags/v2.5.1 -b release/2.5.2
   ```
 - Cherrypick the merge commit: `git cherry-pick {git commit SHA}`
-- Bump the package version in the csproj
-- Make any other compatibility, documentation or tooling related changes
+- Bump the package version in Directory.Build.props
+- Make any other compatibility, documentation, or tooling related changes
 - Push the branch to origin and verify the build
 - Once the build is verified, create a GitHub release, tagging the release branch
 - Open a PR back to master with any other additions

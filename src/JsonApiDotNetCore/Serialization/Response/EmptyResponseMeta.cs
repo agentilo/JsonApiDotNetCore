@@ -4,7 +4,7 @@ namespace JsonApiDotNetCore.Serialization.Response;
 public sealed class EmptyResponseMeta : IResponseMeta
 {
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?>? GetMeta(Queries.IPaginationContext paginationContext)
+    public IDictionary<string, object?>? GetMeta(Queries.IPaginationContext paginationContext)
     {
         return null;
     }

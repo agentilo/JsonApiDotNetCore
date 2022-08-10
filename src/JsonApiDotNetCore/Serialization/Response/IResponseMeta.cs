@@ -13,6 +13,7 @@ public interface IResponseMeta
     /// Gets the global top-level JSON:API meta information to add to the response.
     /// Added information about the collection size
     /// </summary>
-    IReadOnlyDictionary<string, object?>? GetMeta(Queries.IPaginationContext paginationContext);
-
+#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
+    IDictionary<string, object?>? GetMeta(Queries.IPaginationContext paginationContext);
+#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
 }

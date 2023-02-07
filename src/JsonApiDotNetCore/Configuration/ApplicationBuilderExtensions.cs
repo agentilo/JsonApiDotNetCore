@@ -43,7 +43,8 @@ public static class ApplicationBuilderExtensions
             var routingConvention = builder.ApplicationServices.GetRequiredService<IJsonApiRoutingConvention>();
             options.Conventions.Insert(0, routingConvention);
         };
-
         builder.UseMiddleware<JsonApiMiddleware>();
+        builder.UseMiddleware<HttpRequestRestrictionMiddleware>();
+
     }
 }

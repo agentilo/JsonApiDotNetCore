@@ -57,6 +57,7 @@ public class PaginationQueryStringParameterReader : QueryStringParameterReader, 
 
             if (constraint.Elements.Any(element => element.Scope == null))
             {
+                return; //Testfall 5.4.2.2 Positive result, additional parameter 'size'. Should just be ignored
                 AssertIsCollectionRequest();
             }
 

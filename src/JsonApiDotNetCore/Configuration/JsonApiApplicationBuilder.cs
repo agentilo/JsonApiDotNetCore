@@ -165,7 +165,6 @@ internal sealed class JsonApiApplicationBuilder : IJsonApiApplicationBuilder, ID
     private void AddMiddlewareLayer()
     {
         _services.AddSingleton<IJsonApiOptions>(_options);
-        _services.AddScoped<IAuthorizationHandler, DisallowAllAuthorzationHandler>();
         _services.AddSingleton<IJsonApiApplicationBuilder>(this);
         _services.AddSingleton<IExceptionHandler, ExceptionHandler>();
         _services.AddScoped<IAsyncJsonApiExceptionFilter, AsyncJsonApiExceptionFilter>();

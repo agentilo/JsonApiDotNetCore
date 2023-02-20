@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Humanizer.Localisation;
 using JsonApiDotNetCore.Authorization;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Errors;
@@ -11,6 +12,7 @@ using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace JsonApiDotNetCore.Controllers
@@ -18,19 +20,19 @@ namespace JsonApiDotNetCore.Controllers
     public abstract class AuthorizationJsonApiController<TResource, TId> : JsonApiController<TResource, TId>
 where TResource : class, IIdentifiable<TId>
     {
-        private IAuthorizationHandler m_AuthorizationHandler;
+        private IAuthorizationHandler<TId> _authorizationHandler;
 
         /// <inheritdoc />
         protected AuthorizationJsonApiController(IJsonApiOptions options, IResourceGraph resourceGraph, ILoggerFactory loggerFactory,
-            IResourceService<TResource, TId> resourceService, IAuthorizationHandler authorizationHandler)
+            IResourceService<TResource, TId> resourceService, IAuthorizationHandler<TId> authorizationHandler)
             : base(options, resourceGraph, loggerFactory, resourceService)
         {
-            m_AuthorizationHandler = authorizationHandler;
+            _authorizationHandler = authorizationHandler;
         }
 
         /// <inheritdoc />
         protected AuthorizationJsonApiController(IJsonApiOptions options, IResourceGraph resourceGraph, ILoggerFactory loggerFactory,
-            IAuthorizationHandler authorizationHandler,
+            IAuthorizationHandler<TId> authorizationHandler,
             IGetAllService<TResource, TId>? getAll = null, IGetByIdService<TResource, TId>? getById = null,
             IGetSecondaryService<TResource, TId>? getSecondary = null, IGetRelationshipService<TResource, TId>? getRelationship = null,
             ICreateService<TResource, TId>? create = null, IAddToRelationshipService<TResource, TId>? addToRelationship = null,
@@ -39,7 +41,7 @@ where TResource : class, IIdentifiable<TId>
             : base(options, resourceGraph, loggerFactory, getAll, getById, getSecondary, getRelationship, create, addToRelationship, update, setRelationship,
                 delete, removeFromRelationship)
         {
-            m_AuthorizationHandler = authorizationHandler;
+            _authorizationHandler = authorizationHandler;
         }
 
         /// <inheritdoc />
@@ -47,19 +49,46 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead]
         public override async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
         {
-            if (!_AllowedToRead(HttpContext))
+            if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
-            return await base.GetAsync(cancellationToken);
+
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("GET");
+
+            var result = await base.GetAsync(cancellationToken);
+
+            if (result is OkObjectResult okResult)
+            {
+                IReadOnlyCollection<TResource> resources = (IReadOnlyCollection<TResource>)okResult.Value;
+
+                if (resources == null || resources.Count == 0)
+                {
+                    return result; //Nichts da was authorisiert werden muss.
+                }
+                else
+                {                  
+                    ICollection<TResource> filteredResourceList = _authorizationHandler.FilterResourcesForRead<TResource>(cred, resources);
+                    if (filteredResourceList == null || filteredResourceList.Count == 0)
+                    {
+                        throw new UnauthorizedOperationException("GET");
+                    }
+                    return Ok(filteredResourceList);
+                }
+            }
+            else
+            {
+                throw new UnauthorizedOperationException("GET");
+            }
         }
 
-        private bool _AllowedToRead(HttpContext context)
+        private AuthCredentials? _GetAuthCredentials(HttpContext context)
         {
-            bool authorized = false;
-            string authHeader = context?.Request?.Headers["Authorization"];
+            string? authHeader = context?.Request?.Headers["Authorization"];
             if (authHeader?.StartsWith("Bearer") == true)
             {
                 string token = authHeader.Substring("Bearer ".Length).Trim();
-                authorized = m_AuthorizationHandler.CanRead(token);
+                return new AuthCredentials(token);
             }
 
             if (authHeader?.StartsWith("Basic") == true)
@@ -67,59 +96,16 @@ where TResource : class, IIdentifiable<TId>
                 string encoded = authHeader.Substring("Basic ".Length).Trim();
                 var credentials = _GetUserCredentials(encoded);
                 if (credentials.user != null && credentials.pw != null)
-                    authorized = m_AuthorizationHandler.CanRead(credentials.user, credentials.pw);
+                    return new AuthCredentials(credentials.user, credentials.pw);
             }
-
-            return authorized;
+            return null;
         }
 
-        private bool _AllowedToWrite(HttpContext context)
-        {
-            bool authorized = false;
-            string authHeader = context?.Request?.Headers["Authorization"];
-            if (authHeader?.StartsWith("Bearer") == true)
-            {
-                string token = authHeader.Substring("Bearer ".Length).Trim();
-                authorized = m_AuthorizationHandler.CanWrite(token);
-            }
-
-            if (authHeader?.StartsWith("Basic") == true)
-            {
-                string encoded = authHeader.Substring("Basic ".Length).Trim();
-                var credentials = _GetUserCredentials(encoded);
-                if (credentials.user != null && credentials.pw != null)
-                    authorized = m_AuthorizationHandler.CanWrite(credentials.user, credentials.pw);
-            }
-
-            return authorized;
-        }
-
-        private bool _AllowedToManage(HttpContext context)
-        {
-            bool authorized = false;
-            string authHeader = context?.Request?.Headers["Authorization"];
-            if (authHeader?.StartsWith("Bearer") == true)
-            {
-                string token = authHeader.Substring("Bearer ".Length).Trim();
-                authorized = m_AuthorizationHandler.CanManage(token);
-            }
-
-            if (authHeader?.StartsWith("Basic") == true)
-            {
-                string encoded = authHeader.Substring("Basic ".Length).Trim();
-                var credentials = _GetUserCredentials(encoded);
-                if (credentials.user != null && credentials.pw != null)
-                    authorized = m_AuthorizationHandler.CanManage(credentials.user, credentials.pw);
-            }
-
-            return authorized;
-        }
-
-        private (string user, string pw) _GetUserCredentials(string encodedUser)
+        private (string? user, string? pw) _GetUserCredentials(string encodedUser)
         {
             
-            string user = null;
-            string pw = null;
+            string? user = null;
+            string? pw = null;
             try
             {
                 string usernamePassword = Encoding.UTF8.GetString(Convert.FromBase64String(encodedUser));
@@ -127,17 +113,26 @@ where TResource : class, IIdentifiable<TId>
                 user = splitted[0];
                 pw = splitted[1];
             }
-            catch { }
+            finally
+            {
+            }
             return (user, pw);
-        }
 
+        }
 
         /// <inheritdoc />
         [HttpGet("{id}")]
         [HttpHead("{id}")]
         public override async Task<IActionResult> GetAsync(TId id, CancellationToken cancellationToken)
         {
-            if (!_AllowedToRead(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("GET");
+
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("GET");
+
+            if (!_authorizationHandler.IsAllowedToRead(id, cred))
                 throw new UnauthorizedOperationException("GET");
             return await base.GetAsync(id, cancellationToken);
         }
@@ -147,8 +142,16 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}/{relationshipName}")]
         public override async Task<IActionResult> GetSecondaryAsync(TId id, string relationshipName, CancellationToken cancellationToken)
         {
-            if (!_AllowedToRead(HttpContext))
+            if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("GET");
+
+            if (!_authorizationHandler.IsAllowedToRead(id, cred))
+                throw new UnauthorizedOperationException("GET");
+
+            //TODO Muss ich relations abfragen?
             return await base.GetSecondaryAsync(id, relationshipName, cancellationToken);
         }
 
@@ -157,7 +160,13 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}/relationships/{relationshipName}")]
         public override async Task<IActionResult> GetRelationshipAsync(TId id, string relationshipName, CancellationToken cancellationToken)
         {
-            if (!_AllowedToRead(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("GET");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("GET");
+
+            if (!_authorizationHandler.IsAllowedToRead(id, cred))
                 throw new UnauthorizedOperationException("GET");
             return await base.GetRelationshipAsync(id, relationshipName, cancellationToken);
         }
@@ -166,7 +175,16 @@ where TResource : class, IIdentifiable<TId>
         [HttpPost]
         public override async Task<IActionResult> PostAsync([FromBody] TResource resource, CancellationToken cancellationToken)
         {
-            if (!_AllowedToManage(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("POST");
+            //if (!_AllowedToManage(HttpContext))
+            //    throw new UnauthorizedOperationException("POST");
+
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("POST");
+
+            if (!_authorizationHandler.IsAllowedToManage(resource.Id, cred))
                 throw new UnauthorizedOperationException("POST");
             return await base.PostAsync(resource, cancellationToken);
         }
@@ -176,7 +194,13 @@ where TResource : class, IIdentifiable<TId>
         public override async Task<IActionResult> PostRelationshipAsync(TId id, string relationshipName, [FromBody] ISet<IIdentifiable> rightResourceIds,
             CancellationToken cancellationToken)
         {
-            if (!_AllowedToManage(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("POST");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("POST");
+
+            if (!_authorizationHandler.IsAllowedToManage(id, cred))
                 throw new UnauthorizedOperationException("POST");
             return await base.PostRelationshipAsync(id, relationshipName, rightResourceIds, cancellationToken);
         }
@@ -185,7 +209,13 @@ where TResource : class, IIdentifiable<TId>
         [HttpPatch("{id}")]
         public override async Task<IActionResult> PatchAsync(TId id, [FromBody] TResource resource, CancellationToken cancellationToken)
         {
-            if (!_AllowedToWrite(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("PATCH");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("PATCH");
+
+            if (!_authorizationHandler.IsAllowedToWrite(id, cred))
                 throw new UnauthorizedOperationException("PATCH");
             return await base.PatchAsync(id, resource, cancellationToken);
         }
@@ -194,7 +224,19 @@ where TResource : class, IIdentifiable<TId>
         [HttpPut]
         public override async Task<IActionResult> PutAsync([FromBody] IEnumerable<object?> resource, CancellationToken cancellationToken)
         {
-            if (!_AllowedToWrite(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("PUT");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("PUT");
+            List<TResource> tList = new List<TResource>();
+
+            foreach (var obj in resource)
+            {
+                if (obj is TResource)
+                    tList.Add(obj as TResource);
+            }
+            if (!_authorizationHandler.IsAllowedToWrite<TResource>(tList, cred)) //Pro resource or decline if one is not allowed?
                 throw new UnauthorizedOperationException("PUT");
             return await base.PutAsync(resource, cancellationToken);
         }
@@ -204,7 +246,13 @@ where TResource : class, IIdentifiable<TId>
         public override async Task<IActionResult> PatchRelationshipAsync(TId id, string relationshipName, [FromBody] object? rightValue,
             CancellationToken cancellationToken)
         {
-            if (!_AllowedToWrite(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("PATCH");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("PATCH");
+
+            if (!_authorizationHandler.IsAllowedToWrite(id, cred))
                 throw new UnauthorizedOperationException("PATCH");
             return await base.PatchRelationshipAsync(id, relationshipName, rightValue, cancellationToken);
         }
@@ -213,7 +261,13 @@ where TResource : class, IIdentifiable<TId>
         [HttpDelete("{id}")]
         public override async Task<IActionResult> DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            if (!_AllowedToManage(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("DELETE");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("DELETE");
+
+            if (!_authorizationHandler.IsAllowedToManage(id, cred))
                 throw new UnauthorizedOperationException("DELETE");
             return await base.DeleteAsync(id, cancellationToken);
         }
@@ -223,7 +277,13 @@ where TResource : class, IIdentifiable<TId>
         public override async Task<IActionResult> DeleteRelationshipAsync(TId id, string relationshipName, [FromBody] ISet<IIdentifiable> rightResourceIds,
             CancellationToken cancellationToken)
         {
-            if (!_AllowedToManage(HttpContext))
+            if (_authorizationHandler == null)
+                throw new UnauthorizedOperationException("DELETE");
+            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            if (cred == null)
+                throw new UnauthorizedOperationException("DELETE");
+
+            if (!_authorizationHandler.IsAllowedToManage(id, cred))
                 throw new UnauthorizedOperationException("DELETE");
             return await base.DeleteRelationshipAsync(id, relationshipName, rightResourceIds, cancellationToken);
         }

@@ -10,7 +10,7 @@ namespace JsonApiDotNetCore.Errors;
 [PublicAPI]
 public sealed class UnauthorizedOperationException : JsonApiException
 {
-    public UnauthorizedOperationException(string? operation)
+    public UnauthorizedOperationException(string? operation = "")
         : base(new ErrorObject(HttpStatusCode.Unauthorized)
         {
             Title = "Unauthorized",

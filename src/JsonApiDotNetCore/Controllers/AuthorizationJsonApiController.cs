@@ -52,7 +52,9 @@ where TResource : class, IIdentifiable<TId>
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
 
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
@@ -82,44 +84,6 @@ where TResource : class, IIdentifiable<TId>
             }
         }
 
-        private AuthCredentials? _GetAuthCredentials(HttpContext context)
-        {
-            string? authHeader = context?.Request?.Headers["Authorization"];
-            if (authHeader?.StartsWith("Bearer") == true)
-            {
-                string token = authHeader.Substring("Bearer ".Length).Trim();
-                return new AuthCredentials(token);
-            }
-
-            if (authHeader?.StartsWith("Basic") == true)
-            {
-                string encoded = authHeader.Substring("Basic ".Length).Trim();
-                var credentials = _GetUserCredentials(encoded);
-                if (credentials.user != null && credentials.pw != null)
-                    return new AuthCredentials(credentials.user, credentials.pw);
-            }
-            return null;
-        }
-
-        private (string? user, string? pw) _GetUserCredentials(string encodedUser)
-        {
-            
-            string? user = null;
-            string? pw = null;
-            try
-            {
-                string usernamePassword = Encoding.UTF8.GetString(Convert.FromBase64String(encodedUser));
-                string[] splitted = usernamePassword.Split(":");
-                user = splitted[0];
-                pw = splitted[1];
-            }
-            finally
-            {
-            }
-            return (user, pw);
-
-        }
-
         /// <inheritdoc />
         [HttpGet("{id}")]
         [HttpHead("{id}")]
@@ -128,7 +92,9 @@ where TResource : class, IIdentifiable<TId>
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
 
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
@@ -144,7 +110,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
@@ -162,7 +130,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
@@ -180,7 +150,9 @@ where TResource : class, IIdentifiable<TId>
             //if (!_AllowedToManage(HttpContext))
             //    throw new UnauthorizedOperationException("POST");
 
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("POST");
 
@@ -196,7 +168,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("POST");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("POST");
 
@@ -211,7 +185,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("PATCH");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
 
@@ -226,7 +202,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("PUT");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("PUT");
             List<TResource> tList = new List<TResource>();
@@ -248,7 +226,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("PATCH");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
 
@@ -263,7 +243,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("DELETE");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("DELETE");
 
@@ -279,7 +261,9 @@ where TResource : class, IIdentifiable<TId>
         {
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("DELETE");
-            AuthCredentials? cred = _GetAuthCredentials(HttpContext);
+            AuthCredentialReader reader = new AuthCredentialReader();
+
+            AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("DELETE");
 

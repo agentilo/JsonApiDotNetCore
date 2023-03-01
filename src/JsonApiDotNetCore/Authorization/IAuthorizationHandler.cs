@@ -14,5 +14,8 @@ namespace JsonApiDotNetCore.Authorization
         bool IsAllowedToWrite(TId? id, AuthCredentials cred);
         bool IsAllowedToManage(TId? id, AuthCredentials cred);
         bool IsAllowedToWrite<TResource>(ICollection<TResource> tList, AuthCredentials cred) where TResource : class, IIdentifiable<TId>;
+
+        //Is generally allowed to access resources without scopes
+        bool IsAllowed(AuthCredentials cred);
     }
 }

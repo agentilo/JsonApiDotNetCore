@@ -73,7 +73,7 @@ where TResource : class, IIdentifiable<TId>
                     ICollection<TResource> filteredResourceList = _authorizationHandler.FilterResourcesForRead<TResource>(cred, resources);
                     if (filteredResourceList == null || filteredResourceList.Count == 0)
                     {
-                        throw new UnauthorizedOperationException("GET");
+                        throw new ForbiddenOperationException();
                     }
                     return Ok(filteredResourceList);
                 }
@@ -89,6 +89,8 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}")]
         public override async Task<IActionResult> GetAsync(TId id, CancellationToken cancellationToken)
         {
+            var response = await base.GetAsync(id, cancellationToken);
+
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
 
@@ -100,7 +102,7 @@ where TResource : class, IIdentifiable<TId>
 
             if (!_authorizationHandler.IsAllowedToRead(id, cred))
                 throw new UnauthorizedOperationException("GET");
-            return await base.GetAsync(id, cancellationToken);
+            return response;
         }
 
         /// <inheritdoc />
@@ -108,6 +110,7 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}/{relationshipName}")]
         public override async Task<IActionResult> GetSecondaryAsync(TId id, string relationshipName, CancellationToken cancellationToken)
         {
+            var response = await base.GetSecondaryAsync(id, relationshipName, cancellationToken);
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
             AuthCredentialReader reader = new AuthCredentialReader();
@@ -120,7 +123,7 @@ where TResource : class, IIdentifiable<TId>
                 throw new UnauthorizedOperationException("GET");
 
             //TODO Muss ich relations abfragen?
-            return await base.GetSecondaryAsync(id, relationshipName, cancellationToken);
+            return response;
         }
 
         /// <inheritdoc />
@@ -128,6 +131,7 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}/relationships/{relationshipName}")]
         public override async Task<IActionResult> GetRelationshipAsync(TId id, string relationshipName, CancellationToken cancellationToken)
         {
+            var response = await base.GetRelationshipAsync(id, relationshipName, cancellationToken);
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
             AuthCredentialReader reader = new AuthCredentialReader();
@@ -138,7 +142,7 @@ where TResource : class, IIdentifiable<TId>
 
             if (!_authorizationHandler.IsAllowedToRead(id, cred))
                 throw new UnauthorizedOperationException("GET");
-            return await base.GetRelationshipAsync(id, relationshipName, cancellationToken);
+            return response;
         }
 
         /// <inheritdoc />

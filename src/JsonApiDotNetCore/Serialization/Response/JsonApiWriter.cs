@@ -50,8 +50,9 @@ public sealed class JsonApiWriter : IJsonApiWriter
 
         if (model == null && !CanWriteBody((HttpStatusCode)httpContext.Response.StatusCode))
         {
+            //TODO No exception happened. Need to keep this in mind.
             // Prevent exception from Kestrel server, caused by writing data:null json response.
-            return;
+            //return;
         }
 
         string? responseBody = GetResponseBody(model, httpContext);
@@ -89,8 +90,9 @@ public sealed class JsonApiWriter : IJsonApiWriter
                 throw new UnsuccessfulActionResultException((HttpStatusCode)httpContext.Response.StatusCode);
             }
 
-            if (model == null)
-                return null;
+            // We need null data for our specifiacation, so we had to comment this out.
+            /* if (model == null)
+                return null;*/
 
             string responseBody = RenderModel(model);
 

@@ -69,8 +69,15 @@ where TResource : class, IIdentifiable<TId>
                     return result; //Nichts da was authorisiert werden muss.
                 }
                 else
-                {                  
-                    ICollection<TResource> filteredResourceList = _authorizationHandler.FilterResourcesForRead<TResource>(cred, resources);
+                {
+                    var authResult = _authorizationHandler.FilterResourcesForRead<TResource>(cred, resources);
+
+                    if (authResult == null)
+                        throw new UnauthorizedOperationException("GET");
+
+                    _CheckResult(authResult.AuthResult);
+
+                    ICollection<TResource> filteredResourceList = authResult.Resources;
                     if (filteredResourceList == null || filteredResourceList.Count == 0)
                     {
                         throw new ForbiddenOperationException();
@@ -83,6 +90,20 @@ where TResource : class, IIdentifiable<TId>
                 throw new UnauthorizedOperationException("GET");
             }
         }
+
+        private void _CheckResult(AuthorizationResult authResult)
+        {
+            switch (authResult)
+            {
+                case AuthorizationResult.Expired:
+                    throw new BearerTokenExpiredException();
+                case AuthorizationResult.Forbidden:
+                    throw new ForbiddenOperationException();
+                case AuthorizationResult.Unauthorized:
+                    throw new UnauthorizedAccessException();
+            }
+        }
+
 
         /// <inheritdoc />
         [HttpGet("{id}")]
@@ -99,9 +120,11 @@ where TResource : class, IIdentifiable<TId>
             AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
+            var authResult = _authorizationHandler.IsAllowedToRead(id, cred);
 
-            if (!_authorizationHandler.IsAllowedToRead(id, cred))
-                throw new UnauthorizedOperationException("GET");
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
+                throw new ForbiddenOperationException();
             return response;
         }
 
@@ -119,7 +142,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
-            if (!_authorizationHandler.IsAllowedToRead(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToRead(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("GET");
 
             //TODO Muss ich relations abfragen?
@@ -140,7 +166,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
-            if (!_authorizationHandler.IsAllowedToRead(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToRead(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("GET");
             return response;
         }
@@ -159,8 +188,10 @@ where TResource : class, IIdentifiable<TId>
             AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("POST");
+            var authResult = _authorizationHandler.IsAllowedToManage(resource.Id, cred);
 
-            if (!_authorizationHandler.IsAllowedToManage(resource.Id, cred))
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("POST");
             return await base.PostAsync(resource, cancellationToken);
         }
@@ -178,7 +209,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("POST");
 
-            if (!_authorizationHandler.IsAllowedToManage(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToManage(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("POST");
             return await base.PostRelationshipAsync(id, relationshipName, rightResourceIds, cancellationToken);
         }
@@ -195,7 +229,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
 
-            if (!_authorizationHandler.IsAllowedToWrite(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToWrite(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("PATCH");
             return await base.PatchAsync(id, resource, cancellationToken);
         }
@@ -218,7 +255,11 @@ where TResource : class, IIdentifiable<TId>
                 if (obj is TResource)
                     tList.Add(obj as TResource);
             }
-            if (!_authorizationHandler.IsAllowedToWrite<TResource>(tList, cred)) //Pro resource or decline if one is not allowed?
+
+            var authResult = _authorizationHandler.IsAllowedToWrite<TResource>(tList, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("PUT");
             return await base.PutAsync(resource, cancellationToken);
         }
@@ -235,8 +276,10 @@ where TResource : class, IIdentifiable<TId>
             AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
+            var authResult = _authorizationHandler.IsAllowedToWrite(id, cred);
 
-            if (!_authorizationHandler.IsAllowedToWrite(id, cred))
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("PATCH");
             return await base.PatchRelationshipAsync(id, relationshipName, rightValue, cancellationToken);
         }
@@ -253,7 +296,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("DELETE");
 
-            if (!_authorizationHandler.IsAllowedToManage(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToManage(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("DELETE");
             return await base.DeleteAsync(id, cancellationToken);
         }
@@ -271,7 +317,10 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("DELETE");
 
-            if (!_authorizationHandler.IsAllowedToManage(id, cred))
+            var authResult = _authorizationHandler.IsAllowedToManage(id, cred);
+
+            _CheckResult(authResult);
+            if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("DELETE");
             return await base.DeleteRelationshipAsync(id, relationshipName, rightResourceIds, cancellationToken);
         }

@@ -36,6 +36,9 @@ namespace JsonApiDotNetCore.Authorization
                 string[] splitted = usernamePassword.Split(":");
                 user = splitted[0];
                 pw = splitted[1];
+            }catch
+            {
+
             }
             finally
             {

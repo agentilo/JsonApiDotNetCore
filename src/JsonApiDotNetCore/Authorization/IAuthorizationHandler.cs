@@ -9,13 +9,13 @@ namespace JsonApiDotNetCore.Authorization
 {
     public interface IAuthorizationHandler<TId>
     {
-        ICollection<TResource> FilterResourcesForRead<TResource>(AuthCredentials creds, IReadOnlyCollection<TResource> resources) where TResource : class, IIdentifiable<TId>;
-        bool IsAllowedToRead(TId? id, AuthCredentials cred);
-        bool IsAllowedToWrite(TId? id, AuthCredentials cred);
-        bool IsAllowedToManage(TId? id, AuthCredentials cred);
-        bool IsAllowedToWrite<TResource>(ICollection<TResource> tList, AuthCredentials cred) where TResource : class, IIdentifiable<TId>;
+        FilterResourceResult<TResource> FilterResourcesForRead<TResource>(AuthCredentials creds, IReadOnlyCollection<TResource> resources) where TResource : class, IIdentifiable<TId>;
+        AuthorizationResult IsAllowedToRead(TId? id, AuthCredentials cred);
+        AuthorizationResult IsAllowedToWrite(TId? id, AuthCredentials cred);
+        AuthorizationResult IsAllowedToManage(TId? id, AuthCredentials cred);
+        AuthorizationResult IsAllowedToWrite<TResource>(ICollection<TResource> tList, AuthCredentials cred) where TResource : class, IIdentifiable<TId>;
 
         //Is generally allowed to access resources without scopes
-        bool IsAllowed(AuthCredentials cred);
+        AuthorizationResult IsAllowed(AuthCredentials cred);
     }
 }

@@ -17,7 +17,7 @@ namespace JsonApiDotNetCore.Errors
     public class NotAcceptableRequestException : JsonApiException
     {
         public NotAcceptableRequestException(MediaTypeHeaderValue allowedMediaTypeValue)
-            : base(new ErrorObject(HttpStatusCode.NotAcceptable)
+            : base(new ErrorObject(HttpStatusCode.NotAcceptable )
             {
                 Title = "The specified Accept header value does not contain any supported media types.",
                 Detail = $"Please include '{allowedMediaTypeValue}' in the Accept header values.",

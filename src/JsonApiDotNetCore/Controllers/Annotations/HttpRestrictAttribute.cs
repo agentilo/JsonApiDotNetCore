@@ -11,7 +11,7 @@ namespace JsonApiDotNetCore.Controllers.Annotations
     {
         protected abstract string[] Methods { get; }
 
-        public void CheckIfAbleToExecute(HttpContext context)
+        public virtual void CheckIfAbleToExecute(HttpContext context)
         {
             string method = context.Request.Method;
 
@@ -36,7 +36,7 @@ namespace JsonApiDotNetCore.Controllers.Annotations
             await next();
         }
 
-        private bool CanExecuteAction(string requestMethod)
+        protected bool CanExecuteAction(string requestMethod)
         {
             return !Methods.Contains(requestMethod);
         }

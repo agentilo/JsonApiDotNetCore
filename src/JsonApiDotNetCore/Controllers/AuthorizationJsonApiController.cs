@@ -188,7 +188,7 @@ where TResource : class, IIdentifiable<TId>
             AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("POST");
-            var authResult = _authorizationHandler.IsAllowedToManage(resource.Id, cred);
+            var authResult = _authorizationHandler.IsAllowedToManage(resource, cred);
 
             _CheckResult(authResult);
             if (authResult != AuthorizationResult.OK)

@@ -18,5 +18,7 @@ namespace JsonApiDotNetCore.Authorization
         //Is generally allowed to access resources without scopes
         AuthorizationResult IsAllowed(AuthCredentials cred);
         AuthorizationResult IsAllowedToManage<TId>(IIdentifiable<TId> resource, AuthCredentials cred);
+
+        void ResourceCreated(AuthCredentials cred, TId? id);
     }
 }

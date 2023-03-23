@@ -11,6 +11,7 @@ namespace JsonApiDotNetCore.Authorization
         OK,
         Expired,
         Forbidden,
-        Unauthorized
+        Unauthorized,
+        NotFound
     }
 }

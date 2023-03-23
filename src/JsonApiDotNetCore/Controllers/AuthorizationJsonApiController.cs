@@ -101,6 +101,8 @@ where TResource : class, IIdentifiable<TId>
                     throw new ForbiddenOperationException();
                 case AuthorizationResult.Unauthorized:
                     throw new UnauthorizedAccessException();
+                case AuthorizationResult.NotFound:
+                    throw new NotFoundException();
             }
         }
 
@@ -193,7 +195,15 @@ where TResource : class, IIdentifiable<TId>
             _CheckResult(authResult);
             if (authResult != AuthorizationResult.OK)
                 throw new UnauthorizedOperationException("POST");
-            return await base.PostAsync(resource, cancellationToken);
+            var result = await base.PostAsync(resource, cancellationToken);
+
+            if (result is CreatedResult createdResult)
+            {
+                if (createdResult.Value is TResource createdResouce)
+                    _authorizationHandler.ResourceCreated(cred, createdResouce.Id);
+            }
+
+            return result;
         }
 
         /// <inheritdoc />

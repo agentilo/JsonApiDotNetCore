@@ -239,7 +239,7 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
 
-            var authResult = _authorizationHandler.IsAllowedToWrite(id, cred);
+            var authResult = _authorizationHandler.IsAllowedToManage(id, cred);
 
             _CheckResult(authResult);
             if (authResult != AuthorizationResult.OK)
@@ -286,7 +286,7 @@ where TResource : class, IIdentifiable<TId>
             AuthCredentials? cred = reader.GetAuthCredentials(HttpContext);
             if (cred == null)
                 throw new UnauthorizedOperationException("PATCH");
-            var authResult = _authorizationHandler.IsAllowedToWrite(id, cred);
+            var authResult = _authorizationHandler.IsAllowedToManage(id, cred);
 
             _CheckResult(authResult);
             if (authResult != AuthorizationResult.OK)

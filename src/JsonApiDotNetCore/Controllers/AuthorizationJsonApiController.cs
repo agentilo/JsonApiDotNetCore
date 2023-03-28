@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -144,13 +146,52 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
-            var authResult = _authorizationHandler.IsAllowedToRead(id, cred);
 
-            _CheckResult(authResult);
-            if (authResult != AuthorizationResult.OK)
-                throw new UnauthorizedOperationException("GET");
+            if (response is OkObjectResult okResult)
+            {
+                if (okResult.Value is IEnumerable)
+                {
+                    var resourceList = okResult.Value as IReadOnlyCollection<IIdentifiable<TId>>;
 
-            //TODO Muss ich relations abfragen?
+                    if (resourceList == null || resourceList.Count == 0)
+                    {
+                        return response; //Nichts da was authorisiert werden muss.
+                    }
+                    else
+                    {
+                        var authResult = _authorizationHandler.FilterResourcesForRead<IIdentifiable<TId>>(cred, resourceList);
+
+                        if (authResult == null)
+                            throw new UnauthorizedOperationException("GET");
+
+                        _CheckResult(authResult.AuthResult);
+
+                        ICollection<IIdentifiable<TId>> filteredResourceList = authResult.Resources;
+                        if (filteredResourceList == null || filteredResourceList.Count == 0)
+                        {
+                            throw new ForbiddenOperationException();
+                        }
+                        return Ok(filteredResourceList);
+                    }
+                }
+                else
+                {
+                    if (cred == null)
+                        throw new UnauthorizedOperationException("GET");
+
+                    if (okResult.Value is IIdentifiable<TId> identifiable)
+                    {
+                        var authResult = _authorizationHandler.IsAllowedToRead(identifiable.Id, cred);
+
+                        _CheckResult(authResult);
+                        if (authResult != AuthorizationResult.OK)
+                            throw new ForbiddenOperationException();
+                        return response;
+                    }
+                }
+            }
+            
+
             return response;
         }
 
@@ -159,7 +200,7 @@ where TResource : class, IIdentifiable<TId>
         [HttpHead("{id}/relationships/{relationshipName}")]
         public override async Task<IActionResult> GetRelationshipAsync(TId id, string relationshipName, CancellationToken cancellationToken)
         {
-            var response = await base.GetRelationshipAsync(id, relationshipName, cancellationToken);
+            var response = await base.GetSecondaryAsync(id, relationshipName, cancellationToken);
             if (_authorizationHandler == null)
                 throw new UnauthorizedOperationException("GET");
             AuthCredentialReader reader = new AuthCredentialReader();
@@ -168,11 +209,52 @@ where TResource : class, IIdentifiable<TId>
             if (cred == null)
                 throw new UnauthorizedOperationException("GET");
 
-            var authResult = _authorizationHandler.IsAllowedToRead(id, cred);
 
-            _CheckResult(authResult);
-            if (authResult != AuthorizationResult.OK)
-                throw new UnauthorizedOperationException("GET");
+            if (response is OkObjectResult okResult)
+            {
+                if (okResult.Value is IEnumerable)
+                {
+                    var resourceList = okResult.Value as IReadOnlyCollection<IIdentifiable<TId>>;
+
+                    if (resourceList == null || resourceList.Count == 0)
+                    {
+                        return response; //Nichts da was authorisiert werden muss.
+                    }
+                    else
+                    {
+                        var authResult = _authorizationHandler.FilterResourcesForRead<IIdentifiable<TId>>(cred, resourceList);
+
+                        if (authResult == null)
+                            throw new UnauthorizedOperationException("GET");
+
+                        _CheckResult(authResult.AuthResult);
+
+                        ICollection<IIdentifiable<TId>> filteredResourceList = authResult.Resources;
+                        if (filteredResourceList == null || filteredResourceList.Count == 0)
+                        {
+                            throw new ForbiddenOperationException();
+                        }
+                        return Ok(filteredResourceList);
+                    }
+                }
+                else
+                {
+                    if (cred == null)
+                        throw new UnauthorizedOperationException("GET");
+
+                    if (okResult.Value is IIdentifiable<TId> identifiable)
+                    {
+                        var authResult = _authorizationHandler.IsAllowedToRead(identifiable.Id, cred);
+
+                        _CheckResult(authResult);
+                        if (authResult != AuthorizationResult.OK)
+                            throw new ForbiddenOperationException();
+                        return response;
+                    }
+                }
+            }
+
+
             return response;
         }
 

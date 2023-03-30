@@ -26,5 +26,13 @@ namespace JsonApiDotNetCore.Authorization
             CredentialsType= AuthCredentialsType.Basic;
         }
 
+        public AuthCredentials(AuthCredentials creds)
+        {
+            AccessToken = creds?.AccessToken;
+            User = creds?.User;
+            Password = creds?.Password;
+            CredentialsType = creds?.CredentialsType ?? AuthCredentialsType.Basic;
+        }
+
     }
 }

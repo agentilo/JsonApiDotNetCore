@@ -102,7 +102,7 @@ where TResource : class, IIdentifiable<TId>
                 case AuthorizationResult.Forbidden:
                     throw new ForbiddenOperationException();
                 case AuthorizationResult.Unauthorized:
-                    throw new UnauthorizedAccessException();
+                    throw new UnauthorizedOperationException();
                 case AuthorizationResult.NotFound:
                     throw new NotFoundException();
             }

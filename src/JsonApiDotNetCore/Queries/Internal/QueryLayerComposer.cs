@@ -88,7 +88,8 @@ public class QueryLayerComposer : IQueryLayerComposer
         // @formatter:keep_existing_linebreaks true
 
         FilterExpression[] filtersInSecondaryScope = constraints
-            .Where(constraint => secondaryScope.Equals(constraint.Scope))
+            //TODO .Where(constraint => secondaryScope.Equals(constraint.Scope))
+            .Where(constraint => constraint.Scope == null)
             .Select(constraint => constraint.Expression)
             .OfType<FilterExpression>()
             .ToArray();

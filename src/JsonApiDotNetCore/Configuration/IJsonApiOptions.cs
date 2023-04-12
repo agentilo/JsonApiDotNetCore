@@ -39,6 +39,11 @@ public interface IJsonApiOptions
     bool IncludeRequestBodyInErrors { get; }
 
     /// <summary>
+    /// Whether or not the Filters should be merged with the AND operator. This was default prior to 4.0. Now they are merged with an OR operator. 
+    /// </summary>
+    bool UseLegacyFilterMerge { get; }
+
+    /// <summary>
     /// Use relative links for all resources. False by default.
     /// </summary>
     /// <example>

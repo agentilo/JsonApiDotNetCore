@@ -71,6 +71,9 @@ public sealed class JsonApiOptions : IJsonApiOptions
     /// <inheritdoc />
     public bool AllowUnknownFieldsInRequestBody { get; set; }
 
+    ///  <inheritdoc />
+    public bool UseLegacyFilterMerge { get; set; }
+
     /// <inheritdoc />
     public bool EnableLegacyFilterNotation { get; set; }
 

@@ -169,8 +169,12 @@ public class FilterQueryStringParameterReader : QueryStringParameterReader, IFil
         }
     }
 
-    private static FilterExpression MergeFilters(IImmutableList<FilterExpression> filters)
+    private FilterExpression MergeFilters(IImmutableList<FilterExpression> filters)
     {
-        return filters.Count > 1 ? new LogicalExpression(LogicalOperator.Or, filters) : filters.First();
+        var logicalOperator = LogicalOperator.Or;
+        if (_options?.UseLegacyFilterMerge == true)
+            logicalOperator = LogicalOperator.And;
+
+        return filters.Count > 1 ? new LogicalExpression(logicalOperator, filters) : filters.First();
     }
 }

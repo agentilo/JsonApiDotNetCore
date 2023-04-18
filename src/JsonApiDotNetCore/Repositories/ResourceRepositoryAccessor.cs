@@ -48,9 +48,6 @@ public class ResourceRepositoryAccessor : IResourceRepositoryAccessor
     /// <inheritdoc />
     public async Task<int> CountAsync(ResourceType resourceType, FilterExpression? filter, CancellationToken cancellationToken)
     {
-        if (filter != null && filter is NoDataFilterExpression)
-            return 0;
-
         dynamic repository = ResolveReadRepository(resourceType);
         return (int)await repository.CountAsync(filter, cancellationToken);
     }

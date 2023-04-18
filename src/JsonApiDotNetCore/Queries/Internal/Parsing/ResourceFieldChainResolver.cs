@@ -293,7 +293,7 @@ internal sealed class ResourceFieldChainResolver
             string message = ErrorFormatter.GetForNotFound(ResourceFieldCategory.Field, publicName, path, resourceType,
                 FieldChainInheritanceRequirement.Disabled);
 
-            throw new QueryParseException(message);
+            throw new NotCastableQueryException(message);
         }
 
         return field;

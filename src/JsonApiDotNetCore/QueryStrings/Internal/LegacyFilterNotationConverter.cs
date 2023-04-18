@@ -15,6 +15,17 @@ public sealed class LegacyFilterNotationConverter
     private const string InPrefix = "in:";
     private const string NotInPrefix = "nin:";
 
+    private static readonly List<string> UnallowedFirstCharactersForAttributeName = new List<string>()
+    {
+        "_"
+    };
+
+    private static readonly List<string> UnallowedCharactersForAttributeName = new List<string>()
+    {
+        " "
+    };
+
+
     private static readonly Dictionary<string, string> PrefixConversionTable = new()
     {
         ["eq:"] = Keywords.Equals,
@@ -55,6 +66,8 @@ public sealed class LegacyFilterNotationConverter
         }
 
         string attributeName = ExtractAttributeName(parameterName);
+
+        CheckIfValidAttributeName(attributeName);
 
         foreach ((string prefix, string keyword) in PrefixConversionTable)
         {
@@ -115,6 +128,25 @@ public sealed class LegacyFilterNotationConverter
         }
     }
 
+    private void CheckIfValidAttributeName(string attributeName)
+    {
+        if (String.IsNullOrEmpty(attributeName))
+            throw new NameRuleQueryParseException("Attribute name was empty");
+
+
+        foreach(string unallowed in UnallowedFirstCharactersForAttributeName)
+        {
+            if (attributeName.StartsWith(unallowed))
+                throw new NameRuleQueryParseException($"Attribute name can't start with {unallowed}");
+        }
+
+        foreach(string unallowed in UnallowedCharactersForAttributeName)
+        {
+            if (attributeName.Contains(unallowed))
+                throw new NameRuleQueryParseException($"Attribute name can't contain {unallowed}");
+        }
+    }
+
     private static string ExtractAttributeName(string parameterName)
     {
         if (parameterName.StartsWith(ParameterNamePrefix, StringComparison.Ordinal) && parameterName.EndsWith(ParameterNameSuffix, StringComparison.Ordinal))
@@ -122,10 +154,7 @@ public sealed class LegacyFilterNotationConverter
             string attributeName = parameterName.Substring(ParameterNamePrefix.Length,
                 parameterName.Length - ParameterNamePrefix.Length - ParameterNameSuffix.Length);
 
-            if (attributeName.Length > 0)
-            {
-                return attributeName;
-            }
+            return attributeName;
         }
 
         throw new QueryParseException("Expected field name between brackets in filter parameter name.");

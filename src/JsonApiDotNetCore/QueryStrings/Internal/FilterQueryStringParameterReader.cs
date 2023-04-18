@@ -103,9 +103,20 @@ public class FilterQueryStringParameterReader : QueryStringParameterReader, IFil
             }
 
             ResourceFieldChainExpression? scope = GetScope(name);
-            FilterExpression filter = GetFilter(value, scope);
-
+            FilterExpression filter = null;
+            try
+            {
+                filter = GetFilter(value, scope);
+            }
+            catch(NotCastableQueryException ex)
+            {
+                filter = new NoDataFilterExpression();
+            }
             StoreFilterInScope(filter, scope);
+        }
+        catch(NameRuleQueryParseException ex)
+        {
+            throw new NameRuleViolationInQueryException(_lastParameterName, "Name rule violation", ex.Message, ex);
         }
         catch (QueryParseException exception)
         {

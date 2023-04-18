@@ -33,7 +33,6 @@ public class FilterParser : QueryExpressionParser
             Tokenize(source);
 
             FilterExpression expression = ParseFilter();
-
             AssertTokenStackIsEmpty();
 
             return expression;

@@ -58,7 +58,6 @@ public class QueryStringReader : IQueryStringReader
                         "Usage of one or more query string parameters is not allowed at the requested endpoint.",
                         $"The parameter '{parameterName}' cannot be used at this endpoint.");
                 }
-
                 reader.Read(parameterName, parameterValue);
                 _logger.LogDebug($"Query string parameter '{parameterName}' was successfully read.");
             }

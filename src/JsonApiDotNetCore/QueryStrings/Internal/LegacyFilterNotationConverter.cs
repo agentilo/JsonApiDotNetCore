@@ -22,7 +22,8 @@ public sealed class LegacyFilterNotationConverter
 
     private static readonly List<string> UnallowedCharactersForAttributeName = new List<string>()
     {
-        " "
+        " ",
+        "+"
     };
 
 

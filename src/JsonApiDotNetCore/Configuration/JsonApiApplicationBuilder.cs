@@ -104,6 +104,7 @@ internal sealed class JsonApiApplicationBuilder : IJsonApiApplicationBuilder, ID
             options.Filters.AddService<IAsyncJsonApiExceptionFilter>();
             options.Filters.AddService<IAsyncQueryStringActionFilter>();
             options.Filters.AddService<IAsyncConvertEmptyActionResultFilter>();
+            options.Filters.AddService<ProtocolActionResultFilter>();
             ConfigureMvcOptions?.Invoke(options);
         });
 
@@ -170,6 +171,7 @@ internal sealed class JsonApiApplicationBuilder : IJsonApiApplicationBuilder, ID
         _services.AddScoped<IAsyncJsonApiExceptionFilter, AsyncJsonApiExceptionFilter>();
         _services.AddScoped<IAsyncQueryStringActionFilter, AsyncQueryStringActionFilter>();
         _services.AddScoped<IAsyncConvertEmptyActionResultFilter, AsyncConvertEmptyActionResultFilter>();
+        _services.AddScoped<ProtocolActionResultFilter>();
         _services.AddSingleton<IJsonApiInputFormatter, JsonApiInputFormatter>();
         _services.AddSingleton<IJsonApiOutputFormatter, JsonApiOutputFormatter>();
         _services.AddSingleton<IJsonApiRoutingConvention, JsonApiRoutingConvention>();

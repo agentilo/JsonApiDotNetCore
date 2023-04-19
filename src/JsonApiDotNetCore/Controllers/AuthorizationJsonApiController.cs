@@ -68,6 +68,9 @@ where TResource : class, IIdentifiable<TId>
 
                 if (resources == null || resources.Count == 0)
                 {
+                    var isAllowedResult = _authorizationHandler.IsAllowed(cred);
+
+                    _CheckResult(isAllowedResult);
                     return result; //Nichts da was authorisiert werden muss.
                 }
                 else
@@ -155,6 +158,9 @@ where TResource : class, IIdentifiable<TId>
 
                     if (resourceList == null || resourceList.Count == 0)
                     {
+                        var isAllowedResult = _authorizationHandler.IsAllowed(cred);
+
+                        _CheckResult(isAllowedResult);
                         return response; //Nichts da was authorisiert werden muss.
                     }
                     else
@@ -218,6 +224,9 @@ where TResource : class, IIdentifiable<TId>
 
                     if (resourceList == null || resourceList.Count == 0)
                     {
+                        var isAllowedResult = _authorizationHandler.IsAllowed(cred);
+
+                        _CheckResult(isAllowedResult);
                         return response; //Nichts da was authorisiert werden muss.
                     }
                     else

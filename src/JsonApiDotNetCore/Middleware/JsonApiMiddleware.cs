@@ -123,8 +123,7 @@ public sealed class JsonApiMiddleware
     private static async Task<bool> ValidateContentTypeHeaderAsync(string allowedContentType, HttpContext httpContext, JsonSerializerOptions serializerOptions)
     {
         string? contentType = httpContext.Request.ContentType;
-
-        if (contentType == null || contentType != allowedContentType)
+        if (contentType != null && contentType != allowedContentType)
         {
             await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
             {
@@ -136,6 +135,11 @@ public sealed class JsonApiMiddleware
                 }
             });
 
+            return false;
+        }
+
+        if (contentType == null && httpContext.Request.ContentLength != null && httpContext.Request.ContentLength > 0)
+        {
             return false;
         }
 

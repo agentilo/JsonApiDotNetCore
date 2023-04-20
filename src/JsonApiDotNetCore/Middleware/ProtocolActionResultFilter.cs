@@ -11,12 +11,18 @@ namespace JsonApiDotNetCore.Middleware
     {
         public void OnActionExecuted(ActionExecutedContext context)
         {
+            var attributes = context.ActionDescriptor.EndpointMetadata.OfType<DisableProtocolCheck>();
+            bool disabled = !attributes.IsNullOrEmpty();
+            if (disabled)
+                return;
+
             if (context.HttpContext.Request.Protocol == HttpProtocol.Http10)
             {
-                if (context.Exception == null)
-                    context.Exception = new HttpVersionNotSupportedException(true);
-                else
+                if (context.Exception != null )
                     context.Exception = new HttpVersionNotSupportedException(false);
+                else
+                    context.Exception = new HttpVersionNotSupportedException(true);
+
             }
 
         }

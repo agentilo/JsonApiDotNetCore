@@ -124,7 +124,7 @@ public sealed class JsonApiMiddleware
     {
         string? contentType = httpContext.Request.ContentType;
 
-        if (contentType != null && contentType != allowedContentType)
+        if (contentType == null || contentType != allowedContentType)
         {
             await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
             {

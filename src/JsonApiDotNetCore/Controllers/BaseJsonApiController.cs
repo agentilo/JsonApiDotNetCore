@@ -114,7 +114,6 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         IReadOnlyCollection<TResource> resources = await _getAll.GetAsync(cancellationToken);
-        CheckHttpProtocol();
         return Ok(resources);
     }
 
@@ -136,7 +135,6 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         TResource resource = await _getById.GetAsync(id, cancellationToken);
-        CheckHttpProtocol();
         return Ok(resource);
     }
 
@@ -164,7 +162,6 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         object? rightValue = await _getSecondary.GetSecondaryAsync(id, relationshipName, cancellationToken);
-        CheckHttpProtocol();
         return Ok(rightValue);
     }
 
@@ -193,7 +190,6 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         object? rightValue = await _getRelationship.GetRelationshipAsync(id, relationshipName, cancellationToken);
-        CheckHttpProtocol();
         return Ok(rightValue);
     }
 

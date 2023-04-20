@@ -3,6 +3,7 @@ using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -90,6 +91,14 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         _usePutInsteadOfPatch = true;
     }
 
+    private void CheckHttpProtocol()
+    {
+        if (HttpContext.Request.Protocol == HttpProtocol.Http10)
+        {
+            throw new HttpVersionNotSupportedException(true);
+        }
+    }
+
     /// <summary>
     /// Gets a collection of primary resources. Example: <code><![CDATA[
     /// GET /articles HTTP/1.1
@@ -105,7 +114,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         IReadOnlyCollection<TResource> resources = await _getAll.GetAsync(cancellationToken);
-
+        CheckHttpProtocol();
         return Ok(resources);
     }
 
@@ -127,7 +136,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         TResource resource = await _getById.GetAsync(id, cancellationToken);
-
+        CheckHttpProtocol();
         return Ok(resource);
     }
 
@@ -155,7 +164,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         object? rightValue = await _getSecondary.GetSecondaryAsync(id, relationshipName, cancellationToken);
-
+        CheckHttpProtocol();
         return Ok(rightValue);
     }
 
@@ -184,7 +193,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         }
 
         object? rightValue = await _getRelationship.GetRelationshipAsync(id, relationshipName, cancellationToken);
-
+        CheckHttpProtocol();
         return Ok(rightValue);
     }
 
@@ -201,7 +210,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         });
 
         ArgumentGuard.NotNull(resource, nameof(resource));
-
+        CheckHttpProtocol();
         if (_create == null)
         {
             throw new RouteNotAvailableException(HttpMethod.Post, Request.Path);
@@ -252,7 +261,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
             relationshipName,
             rightResourceIds
         });
-
+        CheckHttpProtocol();
         ArgumentGuard.NotNullNorEmpty(relationshipName, nameof(relationshipName));
         ArgumentGuard.NotNull(rightResourceIds, nameof(rightResourceIds));
 
@@ -282,7 +291,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
             id,
             resource
         });
-
+        CheckHttpProtocol();
         ArgumentGuard.NotNull(resource, nameof(resource));
 
         if (_update == null)
@@ -333,7 +342,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
             relationshipName,
             rightValue
         });
-
+        CheckHttpProtocol();
         ArgumentGuard.NotNullNorEmpty(relationshipName, nameof(relationshipName));
 
         if (_setRelationship == null)
@@ -356,7 +365,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         if (!_usePutInsteadOfPatch)
             throw new RequestMethodNotAllowedException(HttpMethod.Put);
 
-
+        CheckHttpProtocol();
         List<TResource> tList = new List<TResource>();
 
         foreach (var obj in resource)
@@ -395,7 +404,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
         {
             id
         });
-
+        CheckHttpProtocol();
         if (_delete == null)
         {
             throw new RouteNotAvailableException(HttpMethod.Delete, Request.Path);
@@ -432,7 +441,7 @@ public abstract class BaseJsonApiController<TResource, TId> : CoreJsonApiControl
             relationshipName,
             rightResourceIds
         });
-
+        CheckHttpProtocol();
         ArgumentGuard.NotNullNorEmpty(relationshipName, nameof(relationshipName));
         ArgumentGuard.NotNull(rightResourceIds, nameof(rightResourceIds));
 

@@ -18,7 +18,7 @@ namespace JsonApiDotNetCore.Middleware
 
             if (context.HttpContext.Request.Protocol == HttpProtocol.Http10)
             {
-                if (context.Exception != null )
+                if (context.Exception != null && !(context.Exception is HttpVersionNotSupportedException))
                     context.Exception = new HttpVersionNotSupportedException(false);
                 else
                     context.Exception = new HttpVersionNotSupportedException(true);

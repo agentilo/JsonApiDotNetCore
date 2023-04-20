@@ -138,9 +138,10 @@ public sealed class JsonApiMiddleware
             return false;
         }
 
-        if (contentType == null && httpContext.Request.ContentLength != null && httpContext.Request.ContentLength > 0)
+        if (contentType == null)
         {
-            return false;
+            if (httpContext.Request.Body != null && httpContext.Request.Body.Length > 0)
+                return false;
         }
 
         return true;

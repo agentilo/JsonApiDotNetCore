@@ -139,26 +139,34 @@ public sealed class JsonApiMiddleware
             return false;
         }
 
-        if (contentType == null)
+        httpContext.Request.EnableBuffering(); // Leave the body open so the next middleware can read it.
+        bool hasContent = false;
+        using (var reader = new StreamReader(
+            httpContext.Request.Body,
+            encoding: Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            leaveOpen: true))
         {
-            httpContext.Request.EnableBuffering(); // Leave the body open so the next middleware can read it.
-            bool hasContent = false;
-            using (var reader = new StreamReader(
-                httpContext.Request.Body,
-                encoding: Encoding.UTF8,
-                detectEncodingFromByteOrderMarks: false,
-                leaveOpen: true))
-            {
-                var body = await reader.ReadToEndAsync();
-                // Do some processing with body…
+            var body = await reader.ReadToEndAsync();
+            httpContext.Request.Body.Position = 0;
+            if (body.Length > 0)
+                hasContent = true;
+        }
 
-                // Reset the request body stream position so the next middleware can read it
-                httpContext.Request.Body.Position = 0;
-                if (body.Length > 0)
-                    hasContent = true;
+        if (hasContent)
+        {
+            if (httpContext.Request.Method == HttpMethods.Get)
+            {
+                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.BadRequest)
+                {
+                    Title = "Body in GET Request",
+                    Detail = $"Unallowed body in GET Request."
+                });
+
+                return false;
             }
 
-            if(hasContent)
+            if (contentType == null)
             {
                 await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
                 {
@@ -172,6 +180,7 @@ public sealed class JsonApiMiddleware
 
                 return false;
             }
+
         }
 
         return true;

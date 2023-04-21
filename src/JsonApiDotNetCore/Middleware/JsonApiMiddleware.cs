@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
@@ -140,8 +141,37 @@ public sealed class JsonApiMiddleware
 
         if (contentType == null)
         {
-            if (httpContext.Request.Body != null && httpContext.Request.Body.Length > 0)
+            httpContext.Request.EnableBuffering(); // Leave the body open so the next middleware can read it.
+            bool hasContent = false;
+            using (var reader = new StreamReader(
+                httpContext.Request.Body,
+                encoding: Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: false,
+                leaveOpen: true))
+            {
+                var body = await reader.ReadToEndAsync();
+                // Do some processing with body…
+
+                // Reset the request body stream position so the next middleware can read it
+                httpContext.Request.Body.Position = 0;
+                if (body.Length > 0)
+                    hasContent = true;
+            }
+
+            if(hasContent)
+            {
+                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
+                {
+                    Title = "No Content-Type header value specified.",
+                    Detail = $"Please specify '{allowedContentType}'.",
+                    Source = new ErrorSource
+                    {
+                        Header = "Content-Type"
+                    }
+                });
+
                 return false;
+            }
         }
 
         return true;

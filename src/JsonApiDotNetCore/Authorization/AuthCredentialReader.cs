@@ -9,13 +9,13 @@ namespace JsonApiDotNetCore.Authorization
         public AuthCredentials? GetAuthCredentials(HttpContext context)
         {
             string? authHeader = context?.Request?.Headers["Authorization"];
-            if (authHeader?.StartsWith("Bearer") == true)
+            if (authHeader?.StartsWith("Bearer ") == true)
             {
                 string token = authHeader.Substring("Bearer ".Length).Trim();
                 return new AuthCredentials(token);
             }
 
-            if (authHeader?.StartsWith("Basic") == true)
+            if (authHeader?.StartsWith("Basic ") == true)
             {
                 string encoded = authHeader.Substring("Basic ".Length).Trim();
                 var credentials = _GetUserCredentials(encoded);

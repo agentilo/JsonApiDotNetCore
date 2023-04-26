@@ -96,7 +96,12 @@ public sealed class JsonApiMiddleware
     {
         if (httpContext.Request.Headers.ContainsKey(HeaderNames.IfMatch))
         {
-            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.PreconditionFailed)
+            HttpStatusCode error = HttpStatusCode.PreconditionFailed;
+            if (httpContext.Request.Protocol == HttpProtocol.Http10)
+            {
+                error = HttpStatusCode.InternalServerError;
+            }
+            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(error)
             {
                 Title = "Detection of mid-air edit collisions using ETags is not supported.",
                 Source = new ErrorSource
@@ -126,7 +131,12 @@ public sealed class JsonApiMiddleware
         string? contentType = httpContext.Request.ContentType;
         if (contentType != null && contentType != allowedContentType)
         {
-            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
+            HttpStatusCode error = HttpStatusCode.UnsupportedMediaType;
+            if (httpContext.Request.Protocol == HttpProtocol.Http10)
+            {
+                error = HttpStatusCode.InternalServerError;
+            }
+            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(error)
             {
                 Title = "The specified Content-Type header value is not supported.",
                 Detail = $"Please specify '{allowedContentType}' instead of '{contentType}' for the Content-Type header value.",
@@ -157,7 +167,12 @@ public sealed class JsonApiMiddleware
         {
             if (httpContext.Request.Method == HttpMethods.Get)
             {
-                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.BadRequest)
+                HttpStatusCode error = HttpStatusCode.BadRequest;
+                if (httpContext.Request.Protocol == HttpProtocol.Http10)
+                {
+                    error = HttpStatusCode.InternalServerError;
+                }
+                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(error)
                 {
                     Title = "Body in GET Request",
                     Detail = $"Unallowed body in GET Request."
@@ -168,7 +183,12 @@ public sealed class JsonApiMiddleware
 
             if (contentType == null)
             {
-                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.UnsupportedMediaType)
+                HttpStatusCode error = HttpStatusCode.UnsupportedMediaType;
+                if (httpContext.Request.Protocol == HttpProtocol.Http10)
+                {
+                    error = HttpStatusCode.InternalServerError;
+                }
+                await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(error)
                 {
                     Title = "No Content-Type header value specified.",
                     Detail = $"Please specify '{allowedContentType}'.",
@@ -220,7 +240,12 @@ public sealed class JsonApiMiddleware
 
         if (!seenCompatibleMediaType)
         {
-            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(HttpStatusCode.NotAcceptable)
+            HttpStatusCode error = HttpStatusCode.NotAcceptable;
+            if (httpContext.Request.Protocol == HttpProtocol.Http10)
+            {
+                error = HttpStatusCode.InternalServerError;
+            }
+            await FlushResponseAsync(httpContext.Response, serializerOptions, new ErrorObject(error)
             {
                 Title = "The specified Accept header value does not contain any supported media types.",
                 Detail = $"Please include '{allowedMediaTypeValue}' in the Accept header values.",

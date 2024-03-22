@@ -83,7 +83,7 @@ where TResource : class, IIdentifiable<TId>
                     _CheckResult(authResult.AuthResult);
 
                     ICollection<TResource> filteredResourceList = authResult.Resources;
-                    if (filteredResourceList == null || filteredResourceList.Count == 0)
+                    if (filteredResourceList == null)
                     {
                         throw new ForbiddenOperationException();
                     }

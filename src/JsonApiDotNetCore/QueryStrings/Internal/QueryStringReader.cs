@@ -40,33 +40,57 @@ public class QueryStringReader : IQueryStringReader
 
         foreach ((string parameterName, StringValues parameterValue) in _queryStringAccessor.Query)
         {
-            IQueryStringParameterReader? reader = _parameterReaders.FirstOrDefault(nextReader => nextReader.CanRead(parameterName));
+            var result = AlterFilterQuery(parameterName, parameterValue);
+
+            IQueryStringParameterReader? reader = _parameterReaders.FirstOrDefault(nextReader => nextReader.CanRead(result.parameterName));
 
             if (reader != null)
             {
-                _logger.LogDebug($"Query string parameter '{parameterName}' with value '{parameterValue}' was accepted by {reader.GetType().Name}.");
+                _logger.LogDebug($"Query string parameter '{result.parameterName}' with value '{parameterValue}' was accepted by {reader.GetType().Name}.");
 
-                if (!reader.AllowEmptyValue && string.IsNullOrEmpty(parameterValue))
+                if (!reader.AllowEmptyValue && string.IsNullOrEmpty(result.parameterValue))
                 {
-                    throw new InvalidQueryStringParameterException(parameterName, "Missing query string parameter value.",
-                        $"Missing value for '{parameterName}' query string parameter.");
+                    throw new InvalidQueryStringParameterException(result.parameterName, "Missing query string parameter value.",
+                        $"Missing value for '{result.parameterName}' query string parameter.");
                 }
 
                 if (!reader.IsEnabled(disableQueryStringAttributeNotNull))
                 {
-                    throw new InvalidQueryStringParameterException(parameterName,
+                    throw new InvalidQueryStringParameterException(result.parameterName,
                         "Usage of one or more query string parameters is not allowed at the requested endpoint.",
-                        $"The parameter '{parameterName}' cannot be used at this endpoint.");
+                        $"The parameter '{result.parameterName}' cannot be used at this endpoint.");
                 }
-                reader.Read(parameterName, parameterValue);
-                _logger.LogDebug($"Query string parameter '{parameterName}' was successfully read.");
+                reader.Read(result.parameterName, result.parameterValue);
+                _logger.LogDebug($"Query string parameter '{result.parameterName}' was successfully read.");
             }
             else if (!_options.AllowUnknownQueryStringParameters)
             {
                 throw new InvalidQueryStringParameterException(parameterName, "Unknown query string parameter.",
-                    $"Query string parameter '{parameterName}' is unknown. Set '{nameof(IJsonApiOptions.AllowUnknownQueryStringParameters)}' " +
+                    $"Query string parameter '{result.parameterName}' is unknown. Set '{nameof(IJsonApiOptions.AllowUnknownQueryStringParameters)}' " +
                     "to 'true' in options to ignore unknown parameters.");
             }
         }
+    }
+
+    private (string parameterName, string parameterValue) AlterFilterQuery(string p_parameterName, StringValues p_parameterValue)
+    {
+        if (!p_parameterName.StartsWith("filter"))
+        {
+            return (p_parameterName, p_parameterValue);
+        }
+        //filter[name][test]
+        //filter, name], test]
+        var stringParts = p_parameterName.Split("[");
+        if (stringParts.Length != 3 || !stringParts[1].EndsWith("]") || !stringParts[2].EndsWith("]"))
+        {
+            return (p_parameterName, p_parameterValue);
+        }
+
+        //filter[name]
+        string newName = stringParts[0] + "[" + stringParts[1];
+        //test:p_parameterValue
+        StringValues newValue = stringParts[2].TrimEnd(']') + ":" + p_parameterValue; 
+
+        return (newName, newValue);
     }
 }

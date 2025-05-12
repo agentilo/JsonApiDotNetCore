@@ -89,11 +89,11 @@ public sealed class JsonApiWriter : IJsonApiWriter
             {
                 throw new UnsuccessfulActionResultException((HttpStatusCode)httpContext.Response.StatusCode);
             }
-            // We need null data for our specifiacation, so we had to comment this out.
+            // We need null data for KNX specification, so we had to comment this out.
             /* if (model == null)
                 return null;*/
 
-            if (model == null && httpContext.Request?.Method == HttpMethod.Patch.Method)
+            if (model == null && (httpContext.Request?.Method == HttpMethod.Patch.Method || httpContext.Request?.Method == HttpMethod.Put.Method))
             {
                 return null;
             }
